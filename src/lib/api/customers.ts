@@ -17,6 +17,10 @@ export function listCustomers(params: { search?: string; page?: number } = {}): 
 	return get<Page<Customer>>(`/customers${qs ? `?${qs}` : ''}`);
 }
 
+export function getCustomer(id: string): Promise<Customer> {
+	return get<Customer>(`/customers/${id}`);
+}
+
 export function createCustomer(input: CustomerInput): Promise<Customer> {
 	return post<Customer>('/customers', input);
 }

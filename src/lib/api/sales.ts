@@ -25,9 +25,13 @@ export function getSale(id: string): Promise<Sale> {
 	return get<Sale>(`/sales/${id}`);
 }
 
-export function listSales(branchId: string | null, page = 1): Promise<Page<Sale>> {
-	const q = new URLSearchParams({ page: String(page) });
+export function listSales(
+	branchId: string | null,
+	opts: { page?: number; customerId?: string } = {}
+): Promise<Page<Sale>> {
+	const q = new URLSearchParams({ page: String(opts.page ?? 1) });
 	if (branchId) q.set('branch_id', branchId);
+	if (opts.customerId) q.set('customer_id', opts.customerId);
 	return get<Page<Sale>>(`/sales?${q.toString()}`);
 }
 

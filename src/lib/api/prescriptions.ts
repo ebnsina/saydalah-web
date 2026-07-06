@@ -23,9 +23,13 @@ export interface DispenseInput {
 	paid?: number;
 }
 
-export function listPrescriptions(branchId: string | null, page = 1): Promise<Page<Prescription>> {
-	const q = new URLSearchParams({ page: String(page) });
+export function listPrescriptions(
+	branchId: string | null,
+	opts: { page?: number; customerId?: string } = {}
+): Promise<Page<Prescription>> {
+	const q = new URLSearchParams({ page: String(opts.page ?? 1) });
 	if (branchId) q.set('branch_id', branchId);
+	if (opts.customerId) q.set('customer_id', opts.customerId);
 	return get<Page<Prescription>>(`/prescriptions?${q.toString()}`);
 }
 

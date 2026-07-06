@@ -126,7 +126,7 @@
 				<tbody class="divide-y divide-surface-2">
 					{#each query.data.items as c (c.id)}
 						<tr class="group hover:bg-surface-2/30">
-							<td class="px-4 py-2.5 font-medium text-fg">{c.name}</td>
+							<td class="px-4 py-2.5"><a href="/customers/{c.id}" class="font-medium text-fg transition hover:text-accent hover:underline">{c.name}</a></td>
 							<td class="px-4 py-2.5 font-mono text-xs text-fg-soft">{c.phone || '—'}</td>
 							<td class="px-4 py-2.5 text-fg-soft">{c.address || '—'}</td>
 							<td class="px-4 py-2.5 text-muted">{fmtDate(c.created_at)}</td>
