@@ -7,7 +7,9 @@
 	import BranchSelect from '$lib/components/BranchSelect.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
+	import Skeleton from '$lib/components/ui/Skeleton.svelte';
 	import Spinner from '$lib/components/states/Spinner.svelte';
+	import TableSkeleton from '$lib/components/states/TableSkeleton.svelte';
 	import ErrorState from '$lib/components/states/ErrorState.svelte';
 	import EmptyState from '$lib/components/states/EmptyState.svelte';
 
@@ -55,7 +57,9 @@
 				<h2 class="font-semibold text-fg">Low stock</h2>
 			</div>
 			{#if low.isPending}
-				<Spinner />
+				<div class="space-y-3 py-1">
+					{#each Array(5) as _, i (i)}<Skeleton class="h-4 w-full" />{/each}
+				</div>
 			{:else if low.isError}
 				<ErrorState message={low.error.message} onRetry={() => low.refetch()} />
 			{:else if low.data.items.length === 0}
@@ -82,7 +86,9 @@
 				<h2 class="font-semibold text-fg">Expiring within 60 days</h2>
 			</div>
 			{#if expiring.isPending}
-				<Spinner />
+				<div class="space-y-3 py-1">
+					{#each Array(5) as _, i (i)}<Skeleton class="h-4 w-full" />{/each}
+				</div>
 			{:else if expiring.isError}
 				<ErrorState message={expiring.error.message} onRetry={() => expiring.refetch()} />
 			{:else if expiring.data.items.length === 0}
@@ -104,7 +110,7 @@
 	<section class="mt-6">
 		<h2 class="mb-3 font-semibold text-fg">In-stock batches</h2>
 		{#if batches.isPending}
-			<Spinner />
+			<TableSkeleton cols={5} />
 		{:else if batches.isError}
 			<ErrorState message={batches.error.message} onRetry={() => batches.refetch()} />
 		{:else if batches.data.items.length === 0}

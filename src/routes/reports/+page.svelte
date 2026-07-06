@@ -11,6 +11,7 @@
 	import Spinner from '$lib/components/states/Spinner.svelte';
 	import ErrorState from '$lib/components/states/ErrorState.svelte';
 	import EmptyState from '$lib/components/states/EmptyState.svelte';
+	import TableSkeleton from '$lib/components/states/TableSkeleton.svelte';
 
 	let from = $state(monthStartParam());
 	let to = $state(todayParam());
@@ -89,7 +90,7 @@
 		<Card>
 			<h2 class="mb-3 font-semibold text-fg">Top products</h2>
 			{#if top.isPending}
-				<Spinner />
+				<TableSkeleton cols={4} />
 			{:else if top.data && top.data.items.length > 0}
 				<div class="overflow-x-auto">
 					<table class="w-full text-sm">

@@ -1,6 +1,6 @@
 /** Customer endpoints. */
 
-import { get, post } from './client';
+import { get, post, put } from './client';
 import type { Customer, Page } from '$lib/types';
 
 export interface CustomerInput {
@@ -19,4 +19,8 @@ export function listCustomers(params: { search?: string; page?: number } = {}): 
 
 export function createCustomer(input: CustomerInput): Promise<Customer> {
 	return post<Customer>('/customers', input);
+}
+
+export function updateCustomer(id: string, input: CustomerInput): Promise<Customer> {
+	return put<Customer>(`/customers/${id}`, input);
 }

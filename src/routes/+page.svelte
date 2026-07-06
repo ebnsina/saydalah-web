@@ -41,11 +41,33 @@
 	}));
 
 	// Manager/admin-only reporting.
+	const yesterday = todayParam(new Date(Date.now() - 86_400_000));
 	const todaySales = createQuery(() => ({
 		queryKey: ['sales-summary', branch.id, today],
 		queryFn: () => salesSummary(branch.id, today, today),
 		enabled: branchReady && canReport
 	}));
+	const yesterdaySales = createQuery(() => ({
+		queryKey: ['sales-summary', branch.id, yesterday],
+		queryFn: () => salesSummary(branch.id, yesterday, yesterday),
+		enabled: branchReady && canReport
+	}));
+
+	// Percentage change vs. yesterday (undefined until both days are loaded).
+	function pctDelta(now: number, prev: number): number {
+		if (prev === 0) return now > 0 ? 100 : 0;
+		return Math.round(((now - prev) / prev) * 100);
+	}
+	const revenueDelta = $derived(
+		todaySales.data && yesterdaySales.data
+			? pctDelta(Number(todaySales.data.revenue), Number(yesterdaySales.data.revenue))
+			: undefined
+	);
+	const salesDelta = $derived(
+		todaySales.data && yesterdaySales.data
+			? pctDelta(todaySales.data.sale_count, yesterdaySales.data.sale_count)
+			: undefined
+	);
 	const monthTop = createQuery(() => ({
 		queryKey: ['top-products', branch.id, monthStartParam()],
 		queryFn: () => topProducts(branch.id, { from: monthStartParam(), to: today, limit: 5 }),
@@ -87,6 +109,8 @@
 				label="Today's revenue"
 				value={Number(todaySales.data?.revenue ?? 0)}
 				format={fmtMoney}
+				delta={revenueDelta}
+				hint="vs. yesterday"
 				loading={todaySales.isPending}
 				tone="accent"
 			>
@@ -95,6 +119,8 @@
 			<StatCard
 				label="Today's sales"
 				value={todaySales.data?.sale_count ?? 0}
+				delta={salesDelta}
+				hint="vs. yesterday"
 				loading={todaySales.isPending}
 			>
 				{#snippet icon()}<ShoppingCart size={16} />{/snippet}

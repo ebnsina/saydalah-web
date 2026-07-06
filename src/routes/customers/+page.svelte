@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
-	import { Plus } from '@lucide/svelte';
-	import { listCustomers, createCustomer } from '$lib/api/customers';
+	import { Plus, Pencil } from '@lucide/svelte';
+	import { listCustomers, createCustomer, updateCustomer } from '$lib/api/customers';
+	import type { Customer } from '$lib/types';
 	import { urlParam, setParams } from '$lib/url';
 	import { fmtDate } from '$lib/format';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
@@ -34,16 +35,29 @@
 	}));
 
 	let showForm = $state(false);
+	let editingId = $state<string | null>(null);
 	let form = $state({ name: '', phone: '', address: '' });
 	let formError = $state<string | null>(null);
 
-	const create = createMutation(() => ({
-		mutationFn: createCustomer,
+	function openCreate() {
+		editingId = null;
+		form = { name: '', phone: '', address: '' };
+		formError = null;
+		showForm = true;
+	}
+	function openEdit(c: Customer) {
+		editingId = c.id;
+		form = { name: c.name, phone: c.phone, address: c.address };
+		formError = null;
+		showForm = true;
+	}
+
+	const save = createMutation(() => ({
+		mutationFn: (v: { id: string | null; input: typeof form }) =>
+			v.id ? updateCustomer(v.id, v.input) : createCustomer(v.input),
 		onSuccess: () => {
 			qc.invalidateQueries({ queryKey: ['customers'] });
 			showForm = false;
-			form = { name: '', phone: '', address: '' };
-			formError = null;
 		},
 		onError: (e: Error) => (formError = e.message)
 	}));
@@ -52,7 +66,7 @@
 		e.preventDefault();
 		formError = null;
 		if (form.name.trim().length < 2) return (formError = 'Name is required');
-		create.mutate(form);
+		save.mutate({ id: editingId, input: form });
 	}
 </script>
 
@@ -60,11 +74,11 @@
 
 <PageHeader title="Customers" subtitle="Customer records for prescriptions and sales.">
 	{#snippet actions()}
-		<Button onclick={() => (showForm = true)}><Plus size={16} /> New customer</Button>
+		<Button onclick={openCreate}><Plus size={16} /> New customer</Button>
 	{/snippet}
 </PageHeader>
 
-<Modal bind:open={showForm} title="New customer">
+<Modal bind:open={showForm} title={editingId ? 'Edit customer' : 'New customer'}>
 	<form onsubmit={submit} class="flex flex-col gap-3">
 		<TextInput label="Name" bind:value={form.name} />
 		<TextInput label="Phone" bind:value={form.phone} />
@@ -72,7 +86,7 @@
 		{#if formError}<p class="text-sm text-red-500">{formError}</p>{/if}
 		<div class="mt-1 flex justify-end gap-2">
 			<Button variant="secondary" onclick={() => (showForm = false)}>Cancel</Button>
-			<Button type="submit" disabled={create.isPending}>{create.isPending ? 'Saving…' : 'Save'}</Button>
+			<Button type="submit" disabled={save.isPending}>{save.isPending ? 'Saving…' : 'Save'}</Button>
 		</div>
 	</form>
 </Modal>
@@ -97,15 +111,24 @@
 						<th class="px-4 py-2.5 font-medium">Phone</th>
 						<th class="px-4 py-2.5 font-medium">Address</th>
 						<th class="px-4 py-2.5 font-medium">Since</th>
+						<th class="px-4 py-2.5"></th>
 					</tr>
 				</thead>
 				<tbody class="divide-y divide-surface-2">
 					{#each query.data.items as c (c.id)}
-						<tr class="hover:bg-surface-2/30">
+						<tr class="group hover:bg-surface-2/30">
 							<td class="px-4 py-2.5 font-medium text-fg">{c.name}</td>
 							<td class="px-4 py-2.5 font-mono text-xs text-fg-soft">{c.phone || '—'}</td>
 							<td class="px-4 py-2.5 text-fg-soft">{c.address || '—'}</td>
 							<td class="px-4 py-2.5 text-muted">{fmtDate(c.created_at)}</td>
+							<td class="px-4 py-2.5 text-right">
+								<button
+									onclick={() => openEdit(c)}
+									class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs text-muted opacity-0 transition group-hover:opacity-100 hover:bg-surface-2 hover:text-fg"
+								>
+									<Pencil size={13} /> Edit
+								</button>
+							</td>
 						</tr>
 					{/each}
 				</tbody>

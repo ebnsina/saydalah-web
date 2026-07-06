@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
-	import { Plus, X } from '@lucide/svelte';
+	import { Plus, X, Pencil } from '@lucide/svelte';
 	import {
 		listProducts,
 		listCategories,
 		createProduct,
+		updateProduct,
 		type ProductInput
 	} from '$lib/api/products';
+	import type { Product } from '$lib/types';
 	import { validate, productSchema } from '$lib/validation';
 	import { urlParam, setParams } from '$lib/url';
 	import Spinner from '$lib/components/states/Spinner.svelte';
@@ -45,7 +47,7 @@
 		queryFn: () => listProducts({ search: q, category, active, page })
 	}));
 
-	// --- create form ---
+	// --- create / edit form ---
 	const blank = () => ({
 		name: '',
 		generic_name: '',
@@ -54,21 +56,47 @@
 		barcode: '',
 		category: '',
 		unit: 'unit',
-		reorder_level: 0
+		reorder_level: 0,
+		active: true
 	});
 	let showForm = $state(false);
+	let editingId = $state<string | null>(null);
 	let form = $state(blank());
 	let fieldErrors = $state<Record<string, string>>({});
 	let formError = $state<string | null>(null);
 
-	const create = createMutation(() => ({
-		mutationFn: (input: ProductInput) => createProduct(input),
+	function openCreate() {
+		editingId = null;
+		form = blank();
+		fieldErrors = {};
+		formError = null;
+		showForm = true;
+	}
+	function openEdit(p: Product) {
+		editingId = p.id;
+		form = {
+			name: p.name,
+			generic_name: p.generic_name,
+			form: p.form,
+			strength: p.strength,
+			barcode: p.barcode ?? '',
+			category: p.category,
+			unit: p.unit,
+			reorder_level: p.reorder_level,
+			active: p.active
+		};
+		fieldErrors = {};
+		formError = null;
+		showForm = true;
+	}
+
+	const save = createMutation(() => ({
+		mutationFn: (v: { id: string | null; input: ProductInput & { active: boolean } }) =>
+			v.id ? updateProduct(v.id, v.input) : createProduct(v.input),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['products'] });
 			queryClient.invalidateQueries({ queryKey: ['categories'] });
 			showForm = false;
-			form = blank();
-			formError = null;
 		},
 		onError: (err: Error) => {
 			formError = err.message;
@@ -84,7 +112,7 @@
 			return;
 		}
 		fieldErrors = {};
-		create.mutate({ ...form, barcode: form.barcode || null });
+		save.mutate({ id: editingId, input: { ...form, barcode: form.barcode || null } });
 	}
 
 	function clearFilters() {
@@ -100,13 +128,13 @@
 
 <PageHeader title="Products" subtitle="Shared drug catalog across all branches.">
 	{#snippet actions()}
-		<Button onclick={() => (showForm = true)}>
+		<Button onclick={openCreate}>
 			<Plus size={16} /> New product
 		</Button>
 	{/snippet}
 </PageHeader>
 
-<Modal bind:open={showForm} title="New product">
+<Modal bind:open={showForm} title={editingId ? 'Edit product' : 'New product'}>
 	<form onsubmit={submit} class="grid gap-3 sm:grid-cols-2">
 		<div class="sm:col-span-2">
 			<TextInput label="Name" bind:value={form.name} error={fieldErrors.name} />
@@ -124,11 +152,18 @@
 			error={fieldErrors.reorder_level}
 		/>
 
+		{#if editingId}
+			<label class="flex items-center gap-2 text-sm text-fg-soft sm:col-span-2">
+				<input type="checkbox" bind:checked={form.active} class="h-4 w-4 accent-[var(--color-accent)]" />
+				Active
+			</label>
+		{/if}
+
 		{#if formError}<p class="text-sm text-red-500 sm:col-span-2">{formError}</p>{/if}
 		<div class="mt-1 flex justify-end gap-2 sm:col-span-2">
 			<Button variant="secondary" onclick={() => (showForm = false)}>Cancel</Button>
-			<Button type="submit" disabled={create.isPending}>
-				{create.isPending ? 'Saving…' : 'Save product'}
+			<Button type="submit" disabled={save.isPending}>
+				{save.isPending ? 'Saving…' : 'Save product'}
 			</Button>
 		</div>
 	</form>
@@ -186,13 +221,17 @@
 						<th class="px-4 py-2.5 font-medium">Category</th>
 						<th class="px-4 py-2.5 font-medium">Barcode</th>
 						<th class="px-4 py-2.5 text-right font-medium">Reorder</th>
+						<th class="px-4 py-2.5"></th>
 					</tr>
 				</thead>
 				<tbody class="divide-y divide-surface-2">
 					{#each query.data.items as p (p.id)}
-						<tr class="hover:bg-surface-2/30">
+						<tr class="group hover:bg-surface-2/30">
 							<td class="px-4 py-2.5">
-								<div class="font-medium text-fg">{p.name}</div>
+								<div class="flex items-center gap-2">
+									<span class="font-medium text-fg">{p.name}</span>
+									{#if !p.active}<span class="rounded-full bg-surface-2 px-2 py-0.5 text-[10px] font-medium text-muted">Inactive</span>{/if}
+								</div>
 								{#if p.generic_name}<div class="text-xs text-muted">{p.generic_name}</div>{/if}
 							</td>
 							<td class="px-4 py-2.5 text-fg-soft"
@@ -201,6 +240,14 @@
 							<td class="px-4 py-2.5 text-fg-soft">{p.category || '—'}</td>
 							<td class="px-4 py-2.5 font-mono text-xs text-muted">{p.barcode ?? '—'}</td>
 							<td class="px-4 py-2.5 text-right tabular-nums text-fg-soft">{p.reorder_level}</td>
+							<td class="px-4 py-2.5 text-right">
+								<button
+									onclick={() => openEdit(p)}
+									class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs text-muted opacity-0 transition group-hover:opacity-100 hover:bg-surface-2 hover:text-fg"
+								>
+									<Pencil size={13} /> Edit
+								</button>
+							</td>
 						</tr>
 					{/each}
 				</tbody>
