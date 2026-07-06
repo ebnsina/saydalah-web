@@ -9,6 +9,7 @@
 	import { createQueryClient } from '$lib/query/client';
 	import { isAuthenticated } from '$lib/api/auth';
 	import Sidebar from '$lib/components/Sidebar.svelte';
+	import CommandPalette from '$lib/components/CommandPalette.svelte';
 
 	let { children } = $props();
 
@@ -43,6 +44,7 @@
 
 <QueryClientProvider client={queryClient}>
 	{#if showChrome}
+		<CommandPalette />
 		<div class="flex min-h-screen bg-bg text-fg">
 			<!-- Desktop sidebar -->
 			<div class="sticky top-0 hidden h-screen shrink-0 lg:block">

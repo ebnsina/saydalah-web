@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { Pill, LogOut } from '@lucide/svelte';
+	import { Pill, LogOut, Search } from '@lucide/svelte';
+	import { palette } from '$lib/stores/palette.svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { useQueryClient, createQuery } from '@tanstack/svelte-query';
@@ -37,8 +38,17 @@
 		<span class="text-lg text-fg">Saydalah</span>
 	</a>
 
-	<div class="px-3 pb-2">
+	<div class="space-y-2 px-3 pb-2">
 		<SidebarBranch />
+		<button
+			type="button"
+			onclick={() => (palette.open = true)}
+			class="flex w-full items-center gap-2 rounded-xl border border-surface-2 bg-surface px-3 py-2 text-sm text-muted transition hover:border-surface-3 hover:text-fg"
+		>
+			<Search size={15} />
+			<span class="flex-1 text-left">Search…</span>
+			<kbd class="rounded border border-surface-2 px-1.5 py-0.5 text-[10px] font-medium">⌘K</kbd>
+		</button>
 	</div>
 
 	<nav class="flex-1 space-y-1 overflow-y-auto px-3 py-2">
