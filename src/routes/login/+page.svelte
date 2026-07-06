@@ -50,7 +50,7 @@
 
 <div class="grid min-h-screen lg:grid-cols-2">
 	<!-- Branded visual panel (hidden on small screens) -->
-	<div class="relative hidden overflow-hidden bg-gradient-to-br from-accent to-accent-strong p-12 text-accent-contrast lg:flex lg:flex-col">
+	<div class="relative hidden overflow-hidden bg-gradient-to-br from-accent/80 via-accent/85 to-accent-strong/90 p-12 text-accent-contrast lg:flex lg:flex-col">
 		<!-- Organic blobs -->
 		<div class="pointer-events-none absolute -top-24 -left-16 h-96 w-96 rounded-full bg-white/15 blur-3xl"></div>
 		<div class="pointer-events-none absolute top-1/3 -right-24 h-80 w-80 rounded-full bg-black/10 blur-3xl"></div>
