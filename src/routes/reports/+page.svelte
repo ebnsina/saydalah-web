@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { createQuery } from '@tanstack/svelte-query';
-	import { ShoppingCart, Banknote, Tag, Boxes } from '@lucide/svelte';
+	import { ShoppingCart, Banknote, Tag, Boxes, Download } from '@lucide/svelte';
 	import { salesSummary, topProducts, inventoryValuation } from '$lib/api/reports';
 	import { branch } from '$lib/stores/branch.svelte';
 	import { monthStartParam, todayParam, fmtMoney } from '$lib/format';
+	import { toCSV, downloadCSV } from '$lib/csv';
+	import BarChart from '$lib/components/ui/BarChart.svelte';
 	import BranchSelect from '$lib/components/BranchSelect.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import StatCard from '$lib/components/ui/StatCard.svelte';
@@ -35,6 +37,15 @@
 
 	const dateInput =
 		'rounded-full border border-surface-2 bg-surface px-4 py-1.5 text-sm text-fg focus:border-accent focus:outline-none';
+
+	function exportTop() {
+		const items = top.data?.items ?? [];
+		const csv = toCSV(
+			['Rank', 'Product', 'Units sold', 'Revenue'],
+			items.map((p, i) => [i + 1, p.product_name, p.units_sold, p.revenue])
+		);
+		downloadCSV(`top-products_${from}_${to}.csv`, csv);
+	}
 </script>
 
 <svelte:head><title>Reports — Saydalah</title></svelte:head>
@@ -88,10 +99,23 @@
 
 	<div class="mt-6">
 		<Card>
-			<h2 class="mb-3 font-semibold text-fg">Top products</h2>
+			<div class="mb-4 flex items-center justify-between">
+				<h2 class="font-semibold text-fg">Top products</h2>
+				{#if top.data && top.data.items.length > 0}
+					<button
+						onclick={exportTop}
+						class="inline-flex items-center gap-1.5 rounded-full border border-surface-2 px-3 py-1.5 text-xs text-fg-soft transition hover:bg-surface-2"
+					>
+						<Download size={13} /> Export CSV
+					</button>
+				{/if}
+			</div>
 			{#if top.isPending}
 				<TableSkeleton cols={4} />
 			{:else if top.data && top.data.items.length > 0}
+				<div class="mb-6">
+					<BarChart money data={top.data.items.slice(0, 8).map((p) => ({ label: p.product_name, value: Number(p.revenue) }))} />
+				</div>
 				<div class="overflow-x-auto">
 					<table class="w-full text-sm">
 						<thead class="text-left text-xs tracking-wide text-muted uppercase">

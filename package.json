@@ -28,6 +28,7 @@
 		"@fontsource-variable/mona-sans": "^5.2.8",
 		"@lucide/svelte": "^1.23.0",
 		"@tanstack/svelte-query": "^6.1.36",
+		"layerchart": "^2.0.1",
 		"zod": "^4.4.3"
 	}
 }
