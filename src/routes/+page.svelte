@@ -163,7 +163,26 @@
 		{/if}
 	</div>
 
-	<div class="mt-6 grid gap-6 lg:grid-cols-2">
+	{#if canReport && valuation.data}
+		<div class="mt-4 grid gap-4 sm:grid-cols-3">
+			<StatCard label="Stock on hand" value={valuation.data.total_units}>
+				{#snippet icon()}<Boxes size={16} />{/snippet}
+			</StatCard>
+			<StatCard label="Inventory cost value" value={Number(valuation.data.cost_value)} format={fmtMoney}>
+				{#snippet icon()}<Banknote size={16} />{/snippet}
+			</StatCard>
+			<StatCard
+				label="Inventory retail value"
+				value={Number(valuation.data.retail_value)}
+				format={fmtMoney}
+				tone="accent"
+			>
+				{#snippet icon()}<Banknote size={16} />{/snippet}
+			</StatCard>
+		</div>
+	{/if}
+
+	<div class="mt-6 grid items-start gap-6 lg:grid-cols-2">
 		<!-- Top products this month (managers) -->
 		{#if canReport}
 			<Card>
@@ -201,7 +220,7 @@
 				<Spinner />
 			{:else if low.data && low.data.items.length > 0}
 				<ul class="divide-y divide-surface-2 text-sm">
-					{#each low.data.items.slice(0, 6) as item (item.product_id)}
+					{#each low.data.items.slice(0, 5) as item (item.product_id)}
 						{@const fi = productIcon(item.product_form)}
 						{@const Icon = fi.icon}
 						<li class="flex items-center justify-between py-2">
@@ -216,19 +235,4 @@
 			{/if}
 		</Card>
 	</div>
-
-	{#if canReport && valuation.data}
-		<div class="mt-6 grid gap-4 sm:grid-cols-3">
-			<StatCard label="Stock on hand" value={valuation.data.total_units}>
-				{#snippet icon()}<Boxes size={16} />{/snippet}
-			</StatCard>
-			<StatCard label="Inventory cost value" value={Number(valuation.data.cost_value)} format={fmtMoney} />
-			<StatCard
-				label="Inventory retail value"
-				value={Number(valuation.data.retail_value)}
-				format={fmtMoney}
-				tone="accent"
-			/>
-		</div>
-	{/if}
 {/if}
