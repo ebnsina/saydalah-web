@@ -52,6 +52,20 @@ export function topProducts(
 	return get<{ items: TopProduct[] }>(`/reports/top-products?${q.toString()}`);
 }
 
+export interface DailySales {
+	day: string;
+	sale_count: number;
+	revenue: string;
+}
+
+export function salesDaily(
+	branchId: string | null,
+	from?: string,
+	to?: string
+): Promise<{ items: DailySales[] }> {
+	return get<{ items: DailySales[] }>(`/reports/sales-daily${rangeQ(branchId, from, to)}`);
+}
+
 export function inventoryValuation(branchId: string | null): Promise<InventoryValuation> {
 	return get<InventoryValuation>(`/reports/inventory-valuation${rangeQ(branchId)}`);
 }

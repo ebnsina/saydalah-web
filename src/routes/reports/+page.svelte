@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { createQuery } from '@tanstack/svelte-query';
 	import { ShoppingCart, Banknote, Tag, Boxes, Download } from '@lucide/svelte';
-	import { salesSummary, topProducts, inventoryValuation } from '$lib/api/reports';
+	import { salesSummary, topProducts, inventoryValuation, salesDaily } from '$lib/api/reports';
 	import { branch } from '$lib/stores/branch.svelte';
 	import { monthStartParam, todayParam, fmtMoney } from '$lib/format';
 	import { toCSV, downloadCSV } from '$lib/csv';
 	import BarChart from '$lib/components/ui/BarChart.svelte';
+	import LineChart from '$lib/components/ui/LineChart.svelte';
 	import BranchSelect from '$lib/components/BranchSelect.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import StatCard from '$lib/components/ui/StatCard.svelte';
@@ -34,6 +35,20 @@
 		queryFn: () => inventoryValuation(branch.id),
 		enabled: Boolean(branch.id)
 	}));
+	const daily = createQuery(() => ({
+		queryKey: ['rep-daily', branch.id, from, to],
+		queryFn: () => salesDaily(branch.id, from, to),
+		enabled: Boolean(branch.id)
+	}));
+
+	// Toggle the trend between revenue and order count.
+	let trendMetric = $state<'revenue' | 'count'>('revenue');
+	const trendData = $derived(
+		(daily.data?.items ?? []).map((d) => ({
+			label: d.day,
+			value: trendMetric === 'revenue' ? Number(d.revenue) : d.sale_count
+		}))
+	);
 
 	const dateInput =
 		'rounded-full border border-surface-2 bg-surface px-4 py-1.5 text-sm text-fg focus:border-accent focus:outline-none';
@@ -95,6 +110,32 @@
 		>
 			{#snippet icon()}<Boxes size={16} />{/snippet}
 		</StatCard>
+	</div>
+
+	<!-- Sales trend -->
+	<div class="mt-6">
+		<Card>
+			<div class="mb-2 flex items-center justify-between">
+				<h2 class="font-semibold text-fg">Sales trend</h2>
+				<div class="flex rounded-full border border-surface-2 p-0.5 text-xs">
+					<button
+						onclick={() => (trendMetric = 'revenue')}
+						class="rounded-full px-3 py-1 font-medium transition {trendMetric === 'revenue' ? 'bg-accent text-accent-contrast' : 'text-muted hover:text-fg'}"
+					>Revenue</button>
+					<button
+						onclick={() => (trendMetric = 'count')}
+						class="rounded-full px-3 py-1 font-medium transition {trendMetric === 'count' ? 'bg-accent text-accent-contrast' : 'text-muted hover:text-fg'}"
+					>Orders</button>
+				</div>
+			</div>
+			{#if daily.isPending}
+				<div class="h-44"><Spinner /></div>
+			{:else if daily.isError}
+				<ErrorState message={daily.error.message} onRetry={() => daily.refetch()} />
+			{:else}
+				<LineChart data={trendData} money={trendMetric === 'revenue'} />
+			{/if}
+		</Card>
 	</div>
 
 	<div class="mt-6">
