@@ -19,6 +19,7 @@ export interface ProductFilter {
 	category?: string;
 	active?: string; // 'true' | 'false' | ''
 	page?: number;
+	branchId?: string | null; // include per-branch on_hand
 }
 
 export function listProducts(params: ProductFilter = {}): Promise<Page<Product>> {
@@ -27,6 +28,7 @@ export function listProducts(params: ProductFilter = {}): Promise<Page<Product>>
 	if (params.category) q.set('category', params.category);
 	if (params.active) q.set('active', params.active);
 	if (params.page) q.set('page', String(params.page));
+	if (params.branchId) q.set('branch_id', params.branchId);
 	const qs = q.toString();
 	return get<Page<Product>>(`/products${qs ? `?${qs}` : ''}`);
 }

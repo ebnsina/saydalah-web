@@ -79,8 +79,8 @@
 	});
 
 	const results = createQuery(() => ({
-		queryKey: ['product-search', debounced],
-		queryFn: () => listProducts({ search: debounced }),
+		queryKey: ['product-search', debounced, branch.id],
+		queryFn: () => listProducts({ search: debounced, branchId: branch.id }),
 		enabled: debounced.trim().length > 0
 	}));
 
@@ -340,11 +340,13 @@
 							{#each results.data.items.slice(0, 8) as p (p.id)}
 								{@const fi = productIcon(p.form)}
 								{@const Icon = fi.icon}
+								{@const oos = (p.on_hand ?? 0) <= 0}
 								<li>
 									<button
 										type="button"
 										onclick={() => addToCart(p)}
-										class="group flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-sm transition hover:bg-surface-2/40"
+										disabled={oos}
+										class="group flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-sm transition enabled:hover:bg-surface-2/40 disabled:cursor-not-allowed disabled:opacity-60"
 									>
 										<span class="flex items-center gap-3">
 											<span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-surface-2 {fi.tint}">
@@ -353,11 +355,18 @@
 											<span>
 												<span class="text-fg">{p.name}</span>
 												{#if p.strength}<span class="text-muted"> · {p.strength}</span>{/if}
+												{#if oos}
+													<span class="ml-1 rounded-full bg-red-500/10 px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-tight text-red-500 uppercase">Out of stock</span>
+												{:else}
+													<span class="block text-xs text-muted">{p.on_hand} in stock</span>
+												{/if}
 											</span>
 										</span>
-										<span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent/10 text-accent transition group-hover:bg-accent group-hover:text-accent-contrast">
-											<Plus size={15} />
-										</span>
+										{#if !oos}
+											<span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent/10 text-accent transition group-hover:bg-accent group-hover:text-accent-contrast">
+												<Plus size={15} />
+											</span>
+										{/if}
 									</button>
 								</li>
 							{/each}

@@ -63,6 +63,8 @@ export interface Product {
 	unit: string;
 	reorder_level: number;
 	active: boolean;
+	// On-hand stock at the queried branch (present on branch-scoped product lists).
+	on_hand?: number;
 	created_at: string;
 	updated_at: string;
 }
