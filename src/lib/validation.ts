@@ -6,6 +6,16 @@
  */
 
 import { z } from 'zod';
+import { ApiError } from '$lib/api/client';
+
+/**
+ * Extract per-field messages from a failed API call (the envelope's
+ * `error.details`), so server-side validation lands on the right field. Returns
+ * an empty map for non-field errors.
+ */
+export function apiFieldErrors(err: unknown): Record<string, string> {
+	return err instanceof ApiError && err.details ? err.details : {};
+}
 
 /** Run a schema and return either parsed data or a field→message error map. */
 export function validate<T>(

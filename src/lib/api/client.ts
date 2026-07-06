@@ -10,6 +10,18 @@
 import { getAccessToken, getRefreshToken, setTokens, clearTokens } from './token';
 import type { ApiErrorEnvelope, LoginResponse } from '$lib/types';
 
+/** Error thrown for non-2xx API responses; carries the envelope's field details. */
+export class ApiError extends Error {
+	status: number;
+	details?: Record<string, string>;
+	constructor(message: string, status: number, details?: Record<string, string>) {
+		super(message);
+		this.name = 'ApiError';
+		this.status = status;
+		this.details = details;
+	}
+}
+
 const BASE_URL = (
 	(import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'http://localhost:8080/api/v1'
 ).replace(/\/$/, '');
@@ -83,13 +95,15 @@ async function request<T>(path: string, init: RequestInit = {}, allowRetry = tru
 
 	if (!res.ok) {
 		let message = `Request failed (HTTP ${res.status})`;
+		let details: Record<string, string> | undefined;
 		try {
 			const body = (await res.json()) as ApiErrorEnvelope;
 			if (body?.error?.message) message = body.error.message;
+			if (body?.error?.details) details = body.error.details;
 		} catch {
 			/* non-JSON error body */
 		}
-		throw new Error(message);
+		throw new ApiError(message, res.status, details);
 	}
 
 	if (res.status === 204) return undefined as T;

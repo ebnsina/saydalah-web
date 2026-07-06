@@ -8,6 +8,7 @@
 	import { urlParam, setParams } from '$lib/url';
 	import {
 		validate,
+		apiFieldErrors,
 		branchSchema,
 		supplierSchema,
 		userCreateSchema,
@@ -95,13 +96,13 @@
 		mutationFn: (v: { id: string | null }) =>
 			v.id ? updateBranch(v.id, bForm) : createBranch(bForm),
 		onSuccess: () => { qc.invalidateQueries({ queryKey: ['branches'] }); open = false; },
-		onError: (e: Error) => (error = e.message)
+		onError: (e: Error) => { error = e.message; fieldErrors = { ...fieldErrors, ...apiFieldErrors(e) }; }
 	}));
 	const sMut = createMutation(() => ({
 		mutationFn: (v: { id: string | null }) =>
 			v.id ? updateSupplier(v.id, sForm) : createSupplier(sForm),
 		onSuccess: () => { qc.invalidateQueries({ queryKey: ['suppliers'] }); open = false; },
-		onError: (e: Error) => (error = e.message)
+		onError: (e: Error) => { error = e.message; fieldErrors = { ...fieldErrors, ...apiFieldErrors(e) }; }
 	}));
 	const uMut = createMutation(() => ({
 		mutationFn: (v: { id: string | null }) => {
@@ -111,7 +112,7 @@
 				: createUser({ email: uForm.email, password: uForm.password, full_name: uForm.full_name, role: uForm.role, branch_id });
 		},
 		onSuccess: () => { qc.invalidateQueries({ queryKey: ['users'] }); open = false; },
-		onError: (e: Error) => (error = e.message)
+		onError: (e: Error) => { error = e.message; fieldErrors = { ...fieldErrors, ...apiFieldErrors(e) }; }
 	}));
 
 	function submit() {
