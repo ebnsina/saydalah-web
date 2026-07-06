@@ -17,6 +17,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import Combobox from '$lib/components/ui/Combobox.svelte';
+	import Pagination from '$lib/components/ui/Pagination.svelte';
 	import Spinner from '$lib/components/states/Spinner.svelte';
 	import ErrorState from '$lib/components/states/ErrorState.svelte';
 	import EmptyState from '$lib/components/states/EmptyState.svelte';
@@ -25,9 +26,10 @@
 	const qc = useQueryClient();
 	const branchReady = $derived(Boolean(branch.id));
 
+	let page = $state(1);
 	const list = createQuery(() => ({
-		queryKey: ['prescriptions', branch.id],
-		queryFn: () => listPrescriptions(branch.id),
+		queryKey: ['prescriptions', branch.id, page],
+		queryFn: () => listPrescriptions(branch.id, { page }),
 		enabled: Boolean(branch.id)
 	}));
 	const customers = createQuery(() => ({ queryKey: ['customers', '', 1], queryFn: () => listCustomers({}) }));
@@ -173,6 +175,7 @@
 				</tbody>
 			</table>
 		</div>
+		<Pagination bind:page total={list.data.total} noun="prescriptions" />
 	{/if}
 </div>
 

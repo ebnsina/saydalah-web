@@ -13,6 +13,7 @@
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
+	import Pagination from '$lib/components/ui/Pagination.svelte';
 	import Spinner from '$lib/components/states/Spinner.svelte';
 	import ErrorState from '$lib/components/states/ErrorState.svelte';
 	import EmptyState from '$lib/components/states/EmptyState.svelte';
@@ -21,9 +22,10 @@
 	const qc = useQueryClient();
 	const branchReady = $derived(Boolean(branch.id));
 
+	let page = $state(1);
 	const movements = createQuery(() => ({
-		queryKey: ['movements', branch.id],
-		queryFn: () => listMovements(branch.id),
+		queryKey: ['movements', branch.id, page],
+		queryFn: () => listMovements(branch.id, { page }),
 		enabled: Boolean(branch.id)
 	}));
 	const batches = createQuery(() => ({
@@ -271,6 +273,7 @@
 				</tbody>
 			</table>
 		</div>
+		<Pagination bind:page total={movements.data.total} noun="movements" />
 	{/if}
 </div>
 

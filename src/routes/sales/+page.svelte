@@ -40,15 +40,17 @@
 	import TableSkeleton from '$lib/components/states/TableSkeleton.svelte';
 	import ErrorState from '$lib/components/states/ErrorState.svelte';
 	import EmptyState from '$lib/components/states/EmptyState.svelte';
+	import Pagination from '$lib/components/ui/Pagination.svelte';
 
 	const queryClient = useQueryClient();
 
 	const view = $derived(urlParam('view', 'pos'));
 
 	// History
+	let histPage = $state(1);
 	const history = createQuery(() => ({
-		queryKey: ['sales', branch.id],
-		queryFn: () => listSales(branch.id),
+		queryKey: ['sales', branch.id, histPage],
+		queryFn: () => listSales(branch.id, { page: histPage }),
 		enabled: view === 'history' && Boolean(branch.id)
 	}));
 	const voidMut = createMutation(() => ({
@@ -247,6 +249,7 @@
 					</tbody>
 				</table>
 			</div>
+			<Pagination bind:page={histPage} total={history.data.total} noun="sales" />
 		{/if}
 	</div>
 {:else if receipt}
