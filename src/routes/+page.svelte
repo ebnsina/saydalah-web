@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { createQuery } from '@tanstack/svelte-query';
+	import { fade } from 'svelte/transition';
 	import { Banknote, ShoppingCart, TriangleAlert, Clock, Pill, Boxes, Trophy } from '@lucide/svelte';
 	import { isAuthenticated, me } from '$lib/api/auth';
 	import { lowStock, nearExpiry } from '$lib/api/inventory';
@@ -205,6 +206,8 @@
 	</div>
 
 	<div class="mt-5">
+		{#key tab}
+		<div in:fade={{ duration: 140 }}>
 		{#if tab === 'top' && canReport}
 			<!-- Top products this month -->
 			{#if monthTop.isPending}
@@ -258,5 +261,7 @@
 				<EmptyState title="Stock looks healthy" description="Nothing below reorder level." />
 			{/if}
 		{/if}
+		</div>
+		{/key}
 	</div>
 {/if}

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { createQuery } from '@tanstack/svelte-query';
+	import { fade } from 'svelte/transition';
 	import { Boxes, TriangleAlert, Clock } from '@lucide/svelte';
 	import { listBatches, nearExpiry, lowStock } from '$lib/api/inventory';
 	import { branch } from '$lib/stores/branch.svelte';
@@ -75,6 +76,8 @@
 </div>
 
 <div class="mt-5">
+	{#key tab}
+	<div in:fade={{ duration: 140 }}>
 	{#if !branchReady}
 		<Spinner label="Selecting branch…" />
 	{:else if tab === 'low'}
@@ -179,4 +182,6 @@
 			</div>
 		{/if}
 	{/if}
+	</div>
+	{/key}
 </div>

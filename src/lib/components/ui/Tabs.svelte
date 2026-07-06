@@ -14,13 +14,22 @@
 		onSelect: (id: string) => void;
 	} = $props();
 
-	// Badge colour for an inactive tab (the active tab sits on accent → white badge).
-	const badgeTone: Record<Tone, string> = {
-		default: 'bg-surface-2 text-muted',
-		accent: 'bg-accent/15 text-accent',
-		warn: 'bg-amber-500/15 text-amber-600',
-		danger: 'bg-red-500/15 text-red-500',
-		success: 'bg-emerald-500/15 text-emerald-600'
+	// Tone-colored text stays visible whether the tab is active or not. On an
+	// inactive tab the badge sits on a tinted background; on the active (accent)
+	// pill it sits on white so the tone still reads.
+	const badgeText: Record<Tone, string> = {
+		default: 'text-muted',
+		accent: 'text-accent',
+		warn: 'text-amber-600',
+		danger: 'text-red-500',
+		success: 'text-emerald-600'
+	};
+	const badgeBg: Record<Tone, string> = {
+		default: 'bg-surface-2',
+		accent: 'bg-accent/15',
+		warn: 'bg-amber-500/15',
+		danger: 'bg-red-500/15',
+		success: 'bg-emerald-500/15'
 	};
 </script>
 
@@ -37,9 +46,7 @@
 		>
 			{#if Icon}<Icon size={15} />{/if}{t.label}
 			{#if t.count !== undefined}
-				<span class="rounded-full px-1.5 text-xs font-medium tabular-nums {active === t.id
-					? 'bg-white/25 text-accent-contrast'
-					: badgeTone[t.tone ?? 'default']}">{t.count}</span>
+				<span class="rounded-full px-1.5 text-xs font-semibold tabular-nums {badgeText[t.tone ?? 'default']} {active === t.id ? 'bg-white' : badgeBg[t.tone ?? 'default']}">{t.count}</span>
 			{/if}
 		</button>
 	{/each}
