@@ -1,8 +1,14 @@
 <script lang="ts">
 	import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
-	import { Plus } from '@lucide/svelte';
-	import { listProducts, createProduct, type ProductInput } from '$lib/api/products';
+	import { Plus, X } from '@lucide/svelte';
+	import {
+		listProducts,
+		listCategories,
+		createProduct,
+		type ProductInput
+	} from '$lib/api/products';
 	import { validate, productSchema } from '$lib/validation';
+	import { urlParam, setParams } from '$lib/url';
 	import Spinner from '$lib/components/states/Spinner.svelte';
 	import ErrorState from '$lib/components/states/ErrorState.svelte';
 	import EmptyState from '$lib/components/states/EmptyState.svelte';
@@ -14,23 +20,28 @@
 
 	const queryClient = useQueryClient();
 
-	let search = $state('');
-	let debounced = $state('');
-	let page = $state(1);
+	// Filter state lives in the URL (shareable, survives refresh).
+	const q = $derived(urlParam('q'));
+	const category = $derived(urlParam('category'));
+	const active = $derived(urlParam('active'));
+	const page = $derived(Number(urlParam('page')) || 1);
+	const hasFilters = $derived(Boolean(q || category || active));
 
-	// Debounce search input; reset to page 1 on a new term.
+	// Local search box, debounced into the URL.
+	let searchInput = $state(urlParam('q'));
 	$effect(() => {
-		const term = search;
+		const term = searchInput;
 		const t = setTimeout(() => {
-			debounced = term;
-			page = 1;
-		}, 250);
+			if (term !== urlParam('q')) setParams({ q: term || null, page: null });
+		}, 300);
 		return () => clearTimeout(t);
 	});
 
+	const categories = createQuery(() => ({ queryKey: ['categories'], queryFn: listCategories }));
+
 	const query = createQuery(() => ({
-		queryKey: ['products', debounced, page],
-		queryFn: () => listProducts({ search: debounced, page })
+		queryKey: ['products', q, category, active, page],
+		queryFn: () => listProducts({ search: q, category, active, page })
 	}));
 
 	// --- create form ---
@@ -53,19 +64,19 @@
 		mutationFn: (input: ProductInput) => createProduct(input),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['products'] });
+			queryClient.invalidateQueries({ queryKey: ['categories'] });
 			showForm = false;
 			form = blank();
 			formError = null;
 		},
 		onError: (err: Error) => {
-			formError = err.message; // API's message, verbatim
+			formError = err.message;
 		}
 	}));
 
 	function submit(event: SubmitEvent) {
 		event.preventDefault();
 		formError = null;
-
 		const result = validate(productSchema, form);
 		if (result.errors) {
 			fieldErrors = result.errors;
@@ -74,6 +85,14 @@
 		fieldErrors = {};
 		create.mutate({ ...form, barcode: form.barcode || null });
 	}
+
+	function clearFilters() {
+		searchInput = '';
+		setParams({ q: null, category: null, active: null, page: null });
+	}
+
+	const filterSelect =
+		'rounded-full border border-surface-2 bg-surface px-4 py-2 text-sm text-fg focus:border-accent focus:outline-none';
 </script>
 
 <svelte:head><title>Products — Saydalah</title></svelte:head>
@@ -106,16 +125,44 @@
 
 		{#if formError}<p class="text-sm text-red-500 sm:col-span-2">{formError}</p>{/if}
 		<div class="mt-1 flex justify-end gap-2 sm:col-span-2">
+			<Button variant="secondary" onclick={() => (showForm = false)}>Cancel</Button>
 			<Button type="submit" disabled={create.isPending}>
 				{create.isPending ? 'Saving…' : 'Save product'}
 			</Button>
-			<Button variant="secondary" onclick={() => (showForm = false)}>Cancel</Button>
 		</div>
 	</form>
 </Modal>
 
-<div class="mt-4">
-	<SearchInput bind:value={search} placeholder="Search by name, generic, or barcode…" />
+<!-- Filter bar -->
+<div class="mt-4 flex flex-wrap items-center gap-2">
+	<div class="min-w-56 flex-1">
+		<SearchInput bind:value={searchInput} placeholder="Search by name, generic, or barcode…" />
+	</div>
+	<select
+		value={category}
+		onchange={(e) => setParams({ category: e.currentTarget.value || null, page: null })}
+		class={filterSelect}
+	>
+		<option value="">All categories</option>
+		{#each categories.data?.items ?? [] as c (c)}<option value={c}>{c}</option>{/each}
+	</select>
+	<select
+		value={active}
+		onchange={(e) => setParams({ active: e.currentTarget.value || null, page: null })}
+		class={filterSelect}
+	>
+		<option value="">Any status</option>
+		<option value="true">Active</option>
+		<option value="false">Inactive</option>
+	</select>
+	{#if hasFilters}
+		<button
+			onclick={clearFilters}
+			class="inline-flex items-center gap-1 rounded-full border border-surface-2 px-3 py-2 text-sm text-muted transition hover:bg-surface-2 hover:text-fg"
+		>
+			<X size={14} /> Clear
+		</button>
+	{/if}
 </div>
 
 <div class="mt-4">
@@ -126,7 +173,7 @@
 	{:else if query.data.items.length === 0}
 		<EmptyState
 			title="No products found"
-			description={debounced ? 'Try a different search.' : 'Add your first product.'}
+			description={hasFilters ? 'Try adjusting your filters.' : 'Add your first product.'}
 		/>
 	{:else}
 		<div class="overflow-x-auto rounded-2xl border border-surface-2">
@@ -152,7 +199,7 @@
 							>
 							<td class="px-4 py-2.5 text-fg-soft">{p.category || '—'}</td>
 							<td class="px-4 py-2.5 font-mono text-xs text-muted">{p.barcode ?? '—'}</td>
-							<td class="px-4 py-2.5 text-right text-fg-soft">{p.reorder_level}</td>
+							<td class="px-4 py-2.5 text-right tabular-nums text-fg-soft">{p.reorder_level}</td>
 						</tr>
 					{/each}
 				</tbody>
@@ -163,13 +210,13 @@
 			<span>{query.data.total} products</span>
 			<div class="flex items-center gap-2">
 				<button
-					onclick={() => (page = Math.max(1, page - 1))}
+					onclick={() => setParams({ page: Math.max(1, page - 1) })}
 					disabled={page <= 1}
 					class="rounded-full border border-surface-2 px-4 py-1.5 transition hover:bg-surface-2 disabled:opacity-40"
 				>Prev</button>
 				<span>Page {query.data.page}</span>
 				<button
-					onclick={() => (page = page + 1)}
+					onclick={() => setParams({ page: page + 1 })}
 					disabled={query.data.page * query.data.page_size >= query.data.total}
 					class="rounded-full border border-surface-2 px-4 py-1.5 transition hover:bg-surface-2 disabled:opacity-40"
 				>Next</button>

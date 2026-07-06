@@ -14,12 +14,25 @@ export interface ProductInput {
 	reorder_level?: number;
 }
 
-export function listProducts(params: { search?: string; page?: number } = {}): Promise<Page<Product>> {
+export interface ProductFilter {
+	search?: string;
+	category?: string;
+	active?: string; // 'true' | 'false' | ''
+	page?: number;
+}
+
+export function listProducts(params: ProductFilter = {}): Promise<Page<Product>> {
 	const q = new URLSearchParams();
 	if (params.search) q.set('search', params.search);
+	if (params.category) q.set('category', params.category);
+	if (params.active) q.set('active', params.active);
 	if (params.page) q.set('page', String(params.page));
 	const qs = q.toString();
 	return get<Page<Product>>(`/products${qs ? `?${qs}` : ''}`);
+}
+
+export function listCategories(): Promise<{ items: string[] }> {
+	return get<{ items: string[] }>('/products/categories');
 }
 
 export function getProduct(id: string): Promise<Product> {
