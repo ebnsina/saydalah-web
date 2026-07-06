@@ -35,6 +35,14 @@ export function transferStock(input: {
 	return post('/stock/transfers', input);
 }
 
+export function purchaseReturn(input: {
+	batch_id: string;
+	qty: number;
+	note?: string;
+}): Promise<unknown> {
+	return post('/stock/purchase-returns', input);
+}
+
 export function stockTake(input: {
 	branch_id?: string | null;
 	lines: { batch_id: string; counted_qty: number }[];

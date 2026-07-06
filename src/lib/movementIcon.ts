@@ -8,6 +8,7 @@ import {
 	ArrowDownLeft,
 	ArrowUpRight,
 	ClipboardCheck,
+	PackageX,
 	Package
 } from '@lucide/svelte';
 import type { Icon as IconType } from '@lucide/svelte';
@@ -24,7 +25,8 @@ const MAP: Record<string, MoveIcon> = {
 	return: { icon: Undo2, tint: 'text-emerald-500' },
 	transfer_in: { icon: ArrowDownLeft, tint: 'text-emerald-500' },
 	transfer_out: { icon: ArrowUpRight, tint: 'text-rose-500' },
-	stock_take: { icon: ClipboardCheck, tint: 'text-sky-500' }
+	stock_take: { icon: ClipboardCheck, tint: 'text-sky-500' },
+	purchase_return: { icon: PackageX, tint: 'text-rose-500' }
 };
 
 export function movementIcon(type: string): MoveIcon {

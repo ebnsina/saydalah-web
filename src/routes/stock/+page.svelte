@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
-	import { SlidersHorizontal, ArrowLeftRight, Undo2, ClipboardCheck, Trash2 } from '@lucide/svelte';
-	import { listMovements, adjustStock, transferStock, returnStock, stockTake } from '$lib/api/stock';
+	import { SlidersHorizontal, ArrowLeftRight, Undo2, ClipboardCheck, Trash2, PackageX } from '@lucide/svelte';
+	import { listMovements, adjustStock, transferStock, returnStock, stockTake, purchaseReturn } from '$lib/api/stock';
 	import { listBatches } from '$lib/api/inventory';
 	import { listBranches } from '$lib/api/branches';
 	import { branch } from '$lib/stores/branch.svelte';
@@ -151,6 +151,30 @@
 		if (valid.length === 0) return (takeError = 'Add at least one counted batch');
 		take.mutate({ branch_id: branch.id, lines: valid });
 	}
+
+	// --- purchase return (to supplier) ---
+	let prOpen = $state(false);
+	let prBatch = $state('');
+	let prQty = $state(1);
+	let prNote = $state('');
+	let prError = $state<string | null>(null);
+	const prMut = createMutation(() => ({
+		mutationFn: purchaseReturn,
+		onSuccess: () => {
+			invalidate();
+			prOpen = false;
+			prBatch = '';
+			prQty = 1;
+			prNote = '';
+		},
+		onError: (e: Error) => (prError = e.message)
+	}));
+	function submitPurchaseReturn() {
+		prError = null;
+		if (!prBatch) return (prError = 'Select a batch');
+		if (prQty < 1) return (prError = 'Quantity must be at least 1');
+		prMut.mutate({ batch_id: prBatch, qty: prQty, note: prNote });
+	}
 </script>
 
 <svelte:head><title>Stock ops — Saydalah</title></svelte:head>
@@ -160,6 +184,7 @@
 		<BranchSelect />
 		<Button variant="secondary" onclick={() => (takeOpen = true)}><ClipboardCheck size={16} /> Stock-take</Button>
 		<Button variant="secondary" onclick={() => (returnOpen = true)}><Undo2 size={16} /> Return</Button>
+		<Button variant="secondary" onclick={() => (prOpen = true)}><PackageX size={16} /> To supplier</Button>
 		<Button variant="secondary" onclick={() => (adjustOpen = true)}><SlidersHorizontal size={16} /> Adjust</Button>
 		<Button onclick={() => (transferOpen = true)}><ArrowLeftRight size={16} /> Transfer</Button>
 	{/snippet}
@@ -274,6 +299,30 @@
 		<div class="mt-1 flex justify-end gap-2">
 			<Button variant="secondary" onclick={() => (returnOpen = false)}>Cancel</Button>
 			<Button onclick={submitReturn} disabled={returnMut.isPending}>{returnMut.isPending ? 'Saving…' : 'Return'}</Button>
+		</div>
+	</div>
+</Modal>
+
+<!-- Return to supplier modal -->
+<Modal bind:open={prOpen} title="Return to supplier">
+	<div class="flex flex-col gap-3">
+		<p class="text-sm text-muted">Removes stock from a batch (e.g. damaged or recalled goods) and records a purchase-return in the ledger.</p>
+		<label class="flex flex-col gap-1 text-sm">
+			<span class="font-medium text-fg-soft">Batch</span>
+			<Combobox bind:value={prBatch} options={batchOptions} placeholder="Select a batch…" />
+		</label>
+		<label class="flex flex-col gap-1 text-sm">
+			<span class="font-medium text-fg-soft">Quantity returned</span>
+			<input type="number" min="1" bind:value={prQty} class={field} />
+		</label>
+		<label class="flex flex-col gap-1 text-sm">
+			<span class="font-medium text-fg-soft">Note</span>
+			<input bind:value={prNote} placeholder="damaged, recall…" class={field} />
+		</label>
+		{#if prError}<p class="text-sm text-red-500">{prError}</p>{/if}
+		<div class="mt-1 flex justify-end gap-2">
+			<Button variant="secondary" onclick={() => (prOpen = false)}>Cancel</Button>
+			<Button onclick={submitPurchaseReturn} disabled={prMut.isPending}>{prMut.isPending ? 'Saving…' : 'Return to supplier'}</Button>
 		</div>
 	</div>
 </Modal>

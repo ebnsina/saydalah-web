@@ -60,9 +60,9 @@
 		<div class="mx-auto max-w-3xl px-4"><ErrorState message={sale.error.message} onRetry={() => sale.refetch()} /></div>
 	{:else}
 		{@const s = sale.data}
-		<!-- Invoice sheet — accent top rule prints reliably (border, not background). -->
+		<!-- Invoice sheet -->
 		<article
-			class="relative mx-auto max-w-3xl overflow-hidden border-t-[6px] border-accent bg-white text-gray-800 shadow-sm ring-1 ring-gray-200 print:max-w-none print:shadow-none print:ring-0 sm:rounded-b-2xl"
+			class="relative mx-auto max-w-3xl overflow-hidden bg-white text-gray-800 shadow-sm ring-1 ring-gray-200 print:max-w-none print:shadow-none print:ring-0 sm:rounded-2xl"
 		>
 			{#if s.voided_at}
 				<div class="pointer-events-none absolute inset-0 flex items-center justify-center">
@@ -113,7 +113,7 @@
 				<!-- Items -->
 				<table class="mt-8 w-full text-sm">
 					<thead>
-						<tr class="border-b-2 border-gray-900 text-left text-[11px] font-medium tracking-widest text-gray-500 uppercase">
+						<tr class="border-b border-gray-200 text-left text-[11px] font-medium tracking-widest text-gray-500 uppercase">
 							<th class="py-2 pr-4 font-medium">Item</th>
 							<th class="py-2 pr-4 text-right font-medium">Qty</th>
 							<th class="py-2 pr-4 text-right font-medium">Unit</th>
@@ -123,7 +123,7 @@
 					<tbody>
 						{#each s.items ?? [] as it (it.batch_id)}
 							{@const p = product(it.product_id)}
-							<tr class="border-b border-gray-100">
+							<tr class="border-b border-gray-100 last:border-0">
 								<td class="py-3 pr-4">
 									<div class="font-medium text-gray-900">{p?.name ?? it.product_id.slice(0, 8)}</div>
 									{#if p?.strength}<div class="text-xs text-gray-400">{[p.form, p.strength].filter(Boolean).join(' · ')}</div>{/if}
@@ -135,6 +135,7 @@
 						{/each}
 					</tbody>
 				</table>
+				<div class="border-t border-gray-200"></div>
 
 				<!-- Totals -->
 				<div class="mt-6 flex justify-end">
@@ -142,7 +143,7 @@
 						<div class="flex justify-between text-gray-500"><dt>Subtotal</dt><dd class="font-mono tabular-nums">{fmtMoney(s.subtotal)}</dd></div>
 						{#if Number(s.discount) > 0}<div class="flex justify-between text-gray-500"><dt>Discount</dt><dd class="font-mono tabular-nums">−{fmtMoney(s.discount)}</dd></div>{/if}
 						{#if Number(s.tax) > 0}<div class="flex justify-between text-gray-500"><dt>Tax</dt><dd class="font-mono tabular-nums">{fmtMoney(s.tax)}</dd></div>{/if}
-						<div class="flex items-center justify-between border-t-2 border-gray-900 pt-2 text-lg font-bold text-gray-900"><dt>Total</dt><dd class="font-mono tabular-nums">{fmtMoney(s.total)}</dd></div>
+						<div class="flex items-center justify-between border-t border-gray-200 pt-2 text-lg font-bold text-gray-900"><dt>Total</dt><dd class="font-mono tabular-nums">{fmtMoney(s.total)}</dd></div>
 						<div class="flex justify-between text-gray-500"><dt>Paid</dt><dd class="font-mono tabular-nums">{fmtMoney(s.paid)}</dd></div>
 						{#if due > 0}
 							<div class="flex justify-between font-semibold text-amber-600"><dt>Balance due</dt><dd class="font-mono tabular-nums">{fmtMoney(due)}</dd></div>
