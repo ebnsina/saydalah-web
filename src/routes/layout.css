@@ -4,8 +4,9 @@
 
 /*
  * Semantic color tokens. Components use `bg-surface`, `text-fg`, `text-muted`,
- * `text-accent`, etc. — the values below flip with the theme, so no per-element
- * `dark:` variants are needed.
+ * `text-accent`, etc. — the values flip with the theme, so no per-element
+ * `dark:` variants are needed. `--accent-contrast` is the text colour placed on
+ * an accent fill.
  */
 @theme {
 	--font-sans: 'Mona Sans Variable', ui-sans-serif, system-ui, sans-serif;
@@ -20,19 +21,21 @@
 	--color-fg: var(--fg);
 	--color-accent: var(--accent);
 	--color-accent-strong: var(--accent-strong);
+	--color-accent-contrast: var(--accent-contrast);
 }
 
-/* Light theme (default). */
+/* Light theme (default). A gray page canvas so white cards read as raised. */
 :root {
-	--bg: oklch(0.98 0.002 260);
+	--bg: oklch(0.965 0.003 260);
 	--surface: oklch(1 0 0);
-	--surface-2: oklch(0.95 0.003 260);
-	--surface-3: oklch(0.89 0.004 260);
+	--surface-2: oklch(0.93 0.004 260);
+	--surface-3: oklch(0.88 0.006 260);
 	--muted: oklch(0.52 0.012 260);
 	--fg-soft: oklch(0.36 0.008 260);
 	--fg: oklch(0.21 0.01 260);
 	--accent: oklch(0.55 0.15 232);
 	--accent-strong: oklch(0.48 0.16 232);
+	--accent-contrast: oklch(1 0 0);
 	color-scheme: light;
 }
 
@@ -48,6 +51,7 @@
 		--fg: oklch(0.97 0.003 260);
 		--accent: oklch(0.7 0.13 232);
 		--accent-strong: oklch(0.64 0.14 232);
+		--accent-contrast: oklch(1 0 0);
 		color-scheme: dark;
 	}
 }
@@ -63,6 +67,7 @@
 	--fg: oklch(0.97 0.003 260);
 	--accent: oklch(0.7 0.13 232);
 	--accent-strong: oklch(0.64 0.14 232);
+	--accent-contrast: oklch(1 0 0);
 	color-scheme: dark;
 }
 
@@ -72,8 +77,30 @@
 		-webkit-font-smoothing: antialiased;
 		text-rendering: optimizeLegibility;
 	}
-	input:focus, textarea:focus { outline: none; box-shadow: none; }
-	select:focus { outline: none; box-shadow: none; }
-	select:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
-	* { scrollbar-width: thin; scrollbar-color: var(--color-surface-3) transparent; }
+	input:focus,
+	textarea:focus {
+		outline: none;
+		box-shadow: none;
+	}
+	/* Replace the browser's default select arrow with a consistent chevron. */
+	select {
+		appearance: none;
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23888888' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+		background-repeat: no-repeat;
+		background-position: right 0.7rem center;
+		background-size: 1.05rem;
+		padding-right: 2.25rem;
+	}
+	select:focus {
+		outline: none;
+		box-shadow: none;
+	}
+	select:focus-visible {
+		outline: 2px solid var(--color-accent);
+		outline-offset: 1px;
+	}
+	* {
+		scrollbar-width: thin;
+		scrollbar-color: var(--color-surface-3) transparent;
+	}
 }

@@ -20,7 +20,7 @@
 	} = $props();
 
 	const styles: Record<Variant, string> = {
-		primary: 'bg-accent text-white hover:bg-accent-strong',
+		primary: 'bg-accent text-accent-contrast hover:bg-accent-strong',
 		secondary: 'border border-surface-2 text-fg-soft hover:bg-surface-2',
 		ghost: 'text-muted hover:bg-surface-2 hover:text-fg',
 		danger: 'bg-red-500 text-white hover:bg-red-600'
