@@ -1,6 +1,6 @@
 /** Branch endpoints. */
 
-import { get, post } from './client';
+import { get, post, put } from './client';
 import type { Branch, Page } from '$lib/types';
 
 export function listBranches(): Promise<Page<Branch>> {
@@ -13,4 +13,11 @@ export function createBranch(input: {
 	phone?: string;
 }): Promise<Branch> {
 	return post<Branch>('/branches', input);
+}
+
+export function updateBranch(
+	id: string,
+	input: { name: string; address?: string; phone?: string; active: boolean }
+): Promise<Branch> {
+	return put<Branch>(`/branches/${id}`, input);
 }

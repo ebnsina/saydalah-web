@@ -1,6 +1,6 @@
 /** Supplier endpoints. */
 
-import { get, post } from './client';
+import { get, post, put } from './client';
 import type { Page, Supplier } from '$lib/types';
 
 export function listSuppliers(): Promise<Page<Supplier>> {
@@ -14,4 +14,11 @@ export function createSupplier(input: {
 	email?: string;
 }): Promise<Supplier> {
 	return post<Supplier>('/suppliers', input);
+}
+
+export function updateSupplier(
+	id: string,
+	input: { name: string; contact?: string; phone?: string; email?: string; active: boolean }
+): Promise<Supplier> {
+	return put<Supplier>(`/suppliers/${id}`, input);
 }

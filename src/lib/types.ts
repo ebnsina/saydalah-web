@@ -29,6 +29,8 @@ export interface User {
 	full_name: string;
 	role: Role;
 	branch_id: string | null;
+	// Present on the /users list response; absent on /auth/me.
+	active?: boolean;
 }
 
 export interface LoginResponse {

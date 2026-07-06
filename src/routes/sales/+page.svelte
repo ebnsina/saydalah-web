@@ -1,17 +1,38 @@
 <script lang="ts">
 	import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
-	import { ScanLine, Plus, Minus, X, Trash2, Check } from '@lucide/svelte';
+	import { ScanLine, Plus, Minus, X, Trash2, Check, Ban } from '@lucide/svelte';
 	import { listProducts, getProductByBarcode } from '$lib/api/products';
-	import { createSale } from '$lib/api/sales';
+	import { createSale, listSales, voidSale } from '$lib/api/sales';
 	import { branch } from '$lib/stores/branch.svelte';
-	import { fmtMoney } from '$lib/format';
+	import { fmtMoney, fmtDate } from '$lib/format';
+	import { urlParam, setParams } from '$lib/url';
 	import { validate, saleSchema } from '$lib/validation';
 	import type { Product, Sale, PaymentMethod } from '$lib/types';
 	import BranchSelect from '$lib/components/BranchSelect.svelte';
 	import SearchInput from '$lib/components/ui/SearchInput.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
+	import TableSkeleton from '$lib/components/states/TableSkeleton.svelte';
+	import ErrorState from '$lib/components/states/ErrorState.svelte';
+	import EmptyState from '$lib/components/states/EmptyState.svelte';
 
 	const queryClient = useQueryClient();
+
+	const view = $derived(urlParam('view', 'pos'));
+
+	// History
+	const history = createQuery(() => ({
+		queryKey: ['sales', branch.id],
+		queryFn: () => listSales(branch.id),
+		enabled: view === 'history' && Boolean(branch.id)
+	}));
+	const voidMut = createMutation(() => ({
+		mutationFn: (id: string) => voidSale(id),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['sales'] });
+			queryClient.invalidateQueries({ queryKey: ['batches'] });
+			queryClient.invalidateQueries({ queryKey: ['low-stock'] });
+		}
+	}));
 
 	type Line = { product: Product; qty: number };
 	let cart = $state<Line[]>([]);
@@ -99,13 +120,81 @@
 
 <div class="flex flex-wrap items-center justify-between gap-4">
 	<div>
-		<h1 class="text-2xl font-semibold text-fg">Point of Sale</h1>
-		<p class="text-sm text-muted">Scan or search products, then check out. Stock is dispensed FEFO.</p>
+		<h1 class="text-2xl font-semibold tracking-tight text-fg">Sales</h1>
+		<p class="text-sm text-muted">Ring up sales (FEFO) or review and void past sales.</p>
 	</div>
-	<BranchSelect />
+	<div class="flex items-center gap-2">
+		<div class="flex rounded-full border border-surface-2 p-0.5 text-sm">
+			<button
+				onclick={() => setParams({ view: null })}
+				class="rounded-full px-3 py-1 font-medium transition {view !== 'history' ? 'bg-accent text-accent-contrast' : 'text-muted hover:text-fg'}"
+			>Point of sale</button>
+			<button
+				onclick={() => setParams({ view: 'history' })}
+				class="rounded-full px-3 py-1 font-medium transition {view === 'history' ? 'bg-accent text-accent-contrast' : 'text-muted hover:text-fg'}"
+			>History</button>
+		</div>
+		<BranchSelect />
+	</div>
 </div>
 
-{#if receipt}
+{#if view === 'history'}
+	<!-- Sales history -->
+	<div class="mt-6">
+		{#if !branch.id}
+			<TableSkeleton cols={5} />
+		{:else if history.isPending}
+			<TableSkeleton cols={5} />
+		{:else if history.isError}
+			<ErrorState message={history.error.message} onRetry={() => history.refetch()} />
+		{:else if history.data.items.length === 0}
+			<EmptyState title="No sales yet" description="Completed sales will appear here." />
+		{:else}
+			<div class="overflow-x-auto rounded-2xl border border-surface-2">
+				<table class="w-full text-sm">
+					<thead class="bg-surface-2/50 text-left text-xs tracking-wide text-muted uppercase">
+						<tr>
+							<th class="px-4 py-2.5 font-medium">Sale</th>
+							<th class="px-4 py-2.5 font-medium">When</th>
+							<th class="px-4 py-2.5 font-medium">Payment</th>
+							<th class="px-4 py-2.5 text-right font-medium">Total</th>
+							<th class="px-4 py-2.5 font-medium">Status</th>
+							<th class="px-4 py-2.5"></th>
+						</tr>
+					</thead>
+					<tbody class="divide-y divide-surface-2">
+						{#each history.data.items as s (s.id)}
+							<tr class="group hover:bg-surface-2/30">
+								<td class="px-4 py-2.5 font-mono text-xs text-fg-soft">#{s.id.slice(0, 8)}</td>
+								<td class="px-4 py-2.5 text-muted">{fmtDate(s.created_at)}</td>
+								<td class="px-4 py-2.5 capitalize text-fg-soft">{s.payment_method}</td>
+								<td class="px-4 py-2.5 text-right font-mono tabular-nums text-fg">{fmtMoney(s.total)}</td>
+								<td class="px-4 py-2.5">
+									{#if s.voided_at}
+										<span class="rounded-full bg-red-500/10 px-2.5 py-0.5 text-xs font-medium text-red-500">Voided</span>
+									{:else}
+										<span class="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-500">Completed</span>
+									{/if}
+								</td>
+								<td class="px-4 py-2.5 text-right">
+									{#if !s.voided_at}
+										<button
+											onclick={() => voidMut.mutate(s.id)}
+											disabled={voidMut.isPending}
+											class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs text-muted opacity-0 transition group-hover:opacity-100 hover:bg-red-500/10 hover:text-red-500 disabled:opacity-40"
+										>
+											<Ban size={13} /> Void
+										</button>
+									{/if}
+								</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+		{/if}
+	</div>
+{:else if receipt}
 	<!-- Receipt -->
 	<div class="mx-auto mt-8 max-w-md rounded-2xl border border-surface-2 bg-surface p-6">
 		<div class="flex flex-col items-center gap-1 text-center">
