@@ -21,6 +21,10 @@ export function createSale(input: CreateSaleInput): Promise<Sale> {
 	return post<Sale>('/sales', input);
 }
 
+export function getSale(id: string): Promise<Sale> {
+	return get<Sale>(`/sales/${id}`);
+}
+
 export function listSales(branchId: string | null, page = 1): Promise<Page<Sale>> {
 	const q = new URLSearchParams({ page: String(page) });
 	if (branchId) q.set('branch_id', branchId);

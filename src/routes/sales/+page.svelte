@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
-	import { ScanLine, Plus, Minus, X, Trash2, Check, Ban } from '@lucide/svelte';
+	import { ScanLine, Plus, Minus, X, Trash2, Check, Ban, Printer } from '@lucide/svelte';
 	import { listProducts, getProductByBarcode } from '$lib/api/products';
 	import { createSale, listSales, voidSale } from '$lib/api/sales';
 	import { branch } from '$lib/stores/branch.svelte';
@@ -188,15 +188,23 @@
 									{/if}
 								</td>
 								<td class="px-4 py-2.5 text-right">
-									{#if !s.voided_at}
-										<button
-											onclick={() => voidMut.mutate(s.id)}
-											disabled={voidMut.isPending}
-											class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs text-muted opacity-0 transition group-hover:opacity-100 hover:bg-red-500/10 hover:text-red-500 disabled:opacity-40"
+									<div class="flex items-center justify-end gap-1">
+										<a
+											href="/invoice/{s.id}"
+											class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs text-muted opacity-0 transition group-hover:opacity-100 hover:bg-surface-2 hover:text-fg"
 										>
-											<Ban size={13} /> Void
-										</button>
-									{/if}
+											<Printer size={13} /> Invoice
+										</a>
+										{#if !s.voided_at}
+											<button
+												onclick={() => voidMut.mutate(s.id)}
+												disabled={voidMut.isPending}
+												class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs text-muted opacity-0 transition group-hover:opacity-100 hover:bg-red-500/10 hover:text-red-500 disabled:opacity-40"
+											>
+												<Ban size={13} /> Void
+											</button>
+										{/if}
+									</div>
 								</td>
 							</tr>
 						{/each}
@@ -228,7 +236,15 @@
 			<div class="flex justify-between"><dt class="text-muted">Discount</dt><dd class="font-mono text-fg-soft">{fmtMoney(receipt.discount)}</dd></div>
 			<div class="flex justify-between text-base font-semibold"><dt class="text-fg">Total</dt><dd class="font-mono text-fg">{fmtMoney(receipt.total)}</dd></div>
 		</dl>
-		<Button class="mt-5 w-full" onclick={() => (receipt = null)}>New sale</Button>
+		<div class="mt-5 flex gap-2">
+			<a
+				href="/invoice/{receipt.id}"
+				class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border border-surface-2 px-4 py-2 text-sm font-medium text-fg-soft transition hover:bg-surface-2"
+			>
+				<Printer size={15} /> Invoice
+			</a>
+			<Button class="flex-1" onclick={() => (receipt = null)}>New sale</Button>
+		</div>
 	</div>
 {:else}
 	<div class="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">

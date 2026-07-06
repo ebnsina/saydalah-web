@@ -28,7 +28,11 @@
 		mobileOpen = false;
 	});
 
-	const showChrome = $derived(isAuthenticated() && page.url.pathname !== '/login');
+	// Bare pages (no sidebar/topbar): login, and printable invoices.
+	const bare = $derived(
+		page.url.pathname === '/login' || page.url.pathname.startsWith('/invoice/')
+	);
+	const showChrome = $derived(isAuthenticated() && !bare);
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
