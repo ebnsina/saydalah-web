@@ -33,6 +33,10 @@ export function listPrescriptions(
 	return get<Page<Prescription>>(`/prescriptions?${q.toString()}`);
 }
 
+export function getPrescription(id: string): Promise<Prescription> {
+	return get<Prescription>(`/prescriptions/${id}`);
+}
+
 export function createPrescription(input: CreatePrescriptionInput): Promise<Prescription> {
 	return post<Prescription>('/prescriptions', input);
 }

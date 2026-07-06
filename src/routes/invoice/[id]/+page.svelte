@@ -138,6 +138,12 @@
 							<dd class="font-mono tabular-nums">−{fmtMoney(s.discount)}</dd>
 						</div>
 					{/if}
+					{#if Number(s.tax) > 0}
+						<div class="flex justify-between text-gray-500">
+							<dt>Tax</dt>
+							<dd class="font-mono tabular-nums">{fmtMoney(s.tax)}</dd>
+						</div>
+					{/if}
 					<div class="flex justify-between border-t border-gray-200 pt-2 text-base font-bold text-gray-900">
 						<dt>Total</dt>
 						<dd class="font-mono tabular-nums">{fmtMoney(s.total)}</dd>

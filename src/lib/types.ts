@@ -182,6 +182,7 @@ export interface Sale {
 	prescription_id: string | null;
 	subtotal: string;
 	discount: string;
+	tax: string;
 	total: string;
 	paid: string;
 	payment_method: PaymentMethod;

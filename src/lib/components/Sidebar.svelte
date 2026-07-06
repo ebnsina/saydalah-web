@@ -5,7 +5,6 @@
 	import { useQueryClient, createQuery } from '@tanstack/svelte-query';
 	import { me, logout, isAuthenticated } from '$lib/api/auth';
 	import { NAV, canSee } from '$lib/nav';
-	import ThemeToggle from './ThemeToggle.svelte';
 
 	let { onNavigate }: { onNavigate?: () => void } = $props();
 
@@ -78,10 +77,6 @@
 			>
 				<LogOut size={16} />
 			</button>
-		</div>
-		<div class="mt-3 flex items-center justify-between">
-			<span class="text-xs text-muted">Theme</span>
-			<ThemeToggle />
 		</div>
 	</div>
 </aside>

@@ -145,7 +145,7 @@
 				<tbody class="divide-y divide-surface-2">
 					{#each list.data.items as p (p.id)}
 						<tr class="hover:bg-surface-2/30">
-							<td class="px-4 py-2.5 font-medium text-fg">{customerName(p.customer_id)}</td>
+							<td class="px-4 py-2.5"><a href="/prescriptions/{p.id}" class="font-medium text-fg transition hover:text-accent hover:underline">{customerName(p.customer_id)}</a></td>
 							<td class="px-4 py-2.5 text-fg-soft">{p.doctor_name || '—'}</td>
 							<td class="px-4 py-2.5 text-right tabular-nums text-fg-soft">{p.items?.length ?? 0}</td>
 							<td class="px-4 py-2.5 text-muted">{fmtDate(p.created_at)}</td>

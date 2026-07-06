@@ -15,6 +15,10 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Combobox from '$lib/components/ui/Combobox.svelte';
 	import CameraScanner from '$lib/components/CameraScanner.svelte';
+	import { getMeta } from '$lib/api/meta';
+
+	const meta = createQuery(() => ({ queryKey: ['meta'], queryFn: getMeta, staleTime: 300_000 }));
+	const taxRate = $derived(meta.data?.tax_rate ?? 0);
 
 	const paymentOptions = [
 		{ value: 'cash', label: 'Cash', icon: Banknote, tint: 'text-emerald-500' },
@@ -240,7 +244,8 @@
 		</ul>
 		<dl class="mt-3 space-y-1 border-t border-surface-2 pt-3 text-sm">
 			<div class="flex justify-between"><dt class="text-muted">Subtotal</dt><dd class="font-mono text-fg-soft">{fmtMoney(receipt.subtotal)}</dd></div>
-			<div class="flex justify-between"><dt class="text-muted">Discount</dt><dd class="font-mono text-fg-soft">{fmtMoney(receipt.discount)}</dd></div>
+			{#if Number(receipt.discount) > 0}<div class="flex justify-between"><dt class="text-muted">Discount</dt><dd class="font-mono text-fg-soft">−{fmtMoney(receipt.discount)}</dd></div>{/if}
+			{#if Number(receipt.tax) > 0}<div class="flex justify-between"><dt class="text-muted">Tax</dt><dd class="font-mono text-fg-soft">{fmtMoney(receipt.tax)}</dd></div>{/if}
 			<div class="flex justify-between text-base font-semibold"><dt class="text-fg">Total</dt><dd class="font-mono text-fg">{fmtMoney(receipt.total)}</dd></div>
 		</dl>
 		<div class="mt-5 flex gap-2">
@@ -349,6 +354,9 @@
 					<input type="number" min="0" bind:value={discount} class="w-24 rounded-full border border-surface-2 bg-surface px-3 py-1.5 text-right font-mono text-fg focus:border-accent focus:outline-none" />
 				</label>
 
+				{#if taxRate > 0}
+					<p class="text-right text-xs text-muted">+ {(taxRate * 100).toFixed(taxRate * 100 % 1 === 0 ? 0 : 2)}% VAT added at checkout</p>
+				{/if}
 				{#if saleError}<p class="text-sm text-red-500">{saleError}</p>{/if}
 
 				<Button class="mt-1 w-full" disabled={checkout.isPending} onclick={submit}>
