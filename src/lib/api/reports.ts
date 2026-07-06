@@ -66,6 +66,20 @@ export function salesDaily(
 	return get<{ items: DailySales[] }>(`/reports/sales-daily${rangeQ(branchId, from, to)}`);
 }
 
+export interface PaymentBreakdown {
+	payment_method: string;
+	sale_count: number;
+	revenue: string;
+}
+
+export function salesByPayment(
+	branchId: string | null,
+	from?: string,
+	to?: string
+): Promise<{ items: PaymentBreakdown[] }> {
+	return get<{ items: PaymentBreakdown[] }>(`/reports/sales-by-payment${rangeQ(branchId, from, to)}`);
+}
+
 export function inventoryValuation(branchId: string | null): Promise<InventoryValuation> {
 	return get<InventoryValuation>(`/reports/inventory-valuation${rangeQ(branchId)}`);
 }

@@ -4,7 +4,7 @@
 	import { isAuthenticated, me } from '$lib/api/auth';
 	import { lowStock, nearExpiry } from '$lib/api/inventory';
 	import { listProducts } from '$lib/api/products';
-	import { salesSummary, topProducts, inventoryValuation } from '$lib/api/reports';
+	import { salesSummary, topProducts, inventoryValuation, salesDaily } from '$lib/api/reports';
 	import { branch } from '$lib/stores/branch.svelte';
 	import { fmtLongDate, todayParam, monthStartParam, fmtMoney } from '$lib/format';
 	import { productIcon } from '$lib/productIcon';
@@ -68,6 +68,17 @@
 			? pctDelta(todaySales.data.sale_count, yesterdaySales.data.sale_count)
 			: undefined
 	);
+	// 14-day sparkline trend for the revenue/sales KPI cards.
+	const sparkFrom = todayParam(new Date(Date.now() - 13 * 86_400_000));
+	const sparkTo = todayParam(new Date(Date.now() + 86_400_000));
+	const trend = createQuery(() => ({
+		queryKey: ['dash-trend', branch.id, sparkFrom],
+		queryFn: () => salesDaily(branch.id, sparkFrom, sparkTo),
+		enabled: Boolean(branch.id) && canReport
+	}));
+	const revSpark = $derived((trend.data?.items ?? []).map((d) => Number(d.revenue)));
+	const salesSpark = $derived((trend.data?.items ?? []).map((d) => d.sale_count));
+
 	const monthTop = createQuery(() => ({
 		queryKey: ['top-products', branch.id, monthStartParam()],
 		queryFn: () => topProducts(branch.id, { from: monthStartParam(), to: today, limit: 5 }),
@@ -111,6 +122,7 @@
 				format={fmtMoney}
 				delta={revenueDelta}
 				hint="vs. yesterday"
+				sparkline={revSpark}
 				loading={todaySales.isPending}
 				tone="accent"
 			>
@@ -121,6 +133,7 @@
 				value={todaySales.data?.sale_count ?? 0}
 				delta={salesDelta}
 				hint="vs. yesterday"
+				sparkline={salesSpark}
 				loading={todaySales.isPending}
 			>
 				{#snippet icon()}<ShoppingCart size={16} />{/snippet}

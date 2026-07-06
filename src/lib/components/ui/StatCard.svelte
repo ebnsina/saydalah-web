@@ -15,7 +15,8 @@
 		delta,
 		tone = 'default',
 		loading = false,
-		icon
+		icon,
+		sparkline
 	}: {
 		label: string;
 		value: number;
@@ -26,7 +27,24 @@
 		tone?: Tone;
 		loading?: boolean;
 		icon?: Snippet;
+		sparkline?: number[];
 	} = $props();
+
+	// Build a tiny inline sparkline path (vector — stays crisp).
+	const SW = 96;
+	const SH = 28;
+	const sparkMax = $derived(sparkline ? Math.max(1, ...sparkline) : 1);
+	const sparkPath = $derived(
+		sparkline && sparkline.length > 1
+			? sparkline
+					.map((v, i) => {
+						const x = (i / (sparkline.length - 1)) * SW;
+						const y = SH - 2 - (v / sparkMax) * (SH - 4);
+						return `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`;
+					})
+					.join(' ')
+			: ''
+	);
 
 	const valueTone: Record<Tone, string> = {
 		default: 'text-fg',
@@ -76,5 +94,12 @@
 			{/if}
 		{/if}
 	</div>
-	{#if hint}<div class="mt-1.5 text-xs text-muted">{hint}</div>{/if}
+	<div class="mt-1.5 flex items-end justify-between gap-2">
+		{#if hint}<div class="text-xs text-muted">{hint}</div>{/if}
+		{#if sparkPath && !loading}
+			<svg viewBox="0 0 {SW} {SH}" preserveAspectRatio="none" class="ml-auto h-7 w-24 shrink-0 {valueTone[tone]}">
+				<path d={sparkPath} fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke" opacity="0.7" />
+			</svg>
+		{/if}
+	</div>
 </div>

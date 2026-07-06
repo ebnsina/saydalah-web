@@ -1,7 +1,13 @@
 <script lang="ts">
 	import { createQuery } from '@tanstack/svelte-query';
-	import { ShoppingCart, Banknote, Tag, Boxes, Download } from '@lucide/svelte';
-	import { salesSummary, topProducts, inventoryValuation, salesDaily } from '$lib/api/reports';
+	import { ShoppingCart, Banknote, Tag, Boxes, Download, CreditCard, Smartphone } from '@lucide/svelte';
+	import {
+		salesSummary,
+		topProducts,
+		inventoryValuation,
+		salesDaily,
+		salesByPayment
+	} from '$lib/api/reports';
 	import { branch } from '$lib/stores/branch.svelte';
 	import { monthStartParam, todayParam, fmtMoney } from '$lib/format';
 	import { toCSV, downloadCSV } from '$lib/csv';
@@ -40,6 +46,19 @@
 		queryFn: () => salesDaily(branch.id, from, to),
 		enabled: Boolean(branch.id)
 	}));
+	const byPayment = createQuery(() => ({
+		queryKey: ['rep-payment', branch.id, from, to],
+		queryFn: () => salesByPayment(branch.id, from, to),
+		enabled: Boolean(branch.id)
+	}));
+	const paymentIcon: Record<string, typeof Banknote> = {
+		cash: Banknote,
+		card: CreditCard,
+		mobile: Smartphone
+	};
+	const paymentTotal = $derived(
+		(byPayment.data?.items ?? []).reduce((s, p) => s + Number(p.revenue), 0)
+	);
 
 	// Toggle the trend between revenue and order count.
 	let trendMetric = $state<'revenue' | 'count'>('revenue');
@@ -112,8 +131,8 @@
 		</StatCard>
 	</div>
 
-	<!-- Sales trend -->
-	<div class="mt-6">
+	<!-- Sales trend + payment breakdown -->
+	<div class="mt-6 grid gap-6 lg:grid-cols-[1.6fr_1fr]">
 		<Card>
 			<div class="mb-2 flex items-center justify-between">
 				<h2 class="font-semibold text-fg">Sales trend</h2>
@@ -134,6 +153,35 @@
 				<ErrorState message={daily.error.message} onRetry={() => daily.refetch()} />
 			{:else}
 				<LineChart data={trendData} money={trendMetric === 'revenue'} />
+			{/if}
+		</Card>
+
+		<!-- Payment methods -->
+		<Card>
+			<h2 class="mb-4 font-semibold text-fg">Payment methods</h2>
+			{#if byPayment.isPending}
+				<Spinner />
+			{:else if byPayment.isError}
+				<ErrorState message={byPayment.error.message} onRetry={() => byPayment.refetch()} />
+			{:else if byPayment.data.items.length === 0}
+				<EmptyState title="No sales in this range" />
+			{:else}
+				<div class="flex flex-col gap-4">
+					{#each byPayment.data.items as p (p.payment_method)}
+						{@const PIcon = paymentIcon[p.payment_method] ?? Banknote}
+						{@const pct = paymentTotal > 0 ? (Number(p.revenue) / paymentTotal) * 100 : 0}
+						<div>
+							<div class="mb-1 flex items-center justify-between text-sm">
+								<span class="inline-flex items-center gap-2 text-fg-soft capitalize"><PIcon size={15} class="text-accent" />{p.payment_method}</span>
+								<span class="font-mono tabular-nums text-fg">{fmtMoney(p.revenue)}</span>
+							</div>
+							<div class="h-2 overflow-hidden rounded-full bg-surface-2">
+								<div class="h-full rounded-full bg-accent" style="width: {pct}%"></div>
+							</div>
+							<div class="mt-0.5 text-right text-xs text-muted">{p.sale_count} sale{p.sale_count === 1 ? '' : 's'} · {pct.toFixed(0)}%</div>
+						</div>
+					{/each}
+				</div>
 			{/if}
 		</Card>
 	</div>
