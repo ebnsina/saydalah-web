@@ -19,6 +19,10 @@ export function createUser(input: UserInput): Promise<User> {
 	return post<User>('/users', input);
 }
 
+export function resetPassword(id: string, password: string): Promise<void> {
+	return put<void>(`/users/${id}/password`, { password });
+}
+
 export function updateUser(
 	id: string,
 	input: { full_name?: string; role: Role; branch_id?: string | null; active: boolean }

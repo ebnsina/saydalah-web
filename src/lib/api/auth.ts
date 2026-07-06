@@ -35,3 +35,8 @@ export async function logout(): Promise<void> {
 export function me(): Promise<User> {
 	return get<User>('/auth/me');
 }
+
+/** Change the signed-in user's own password (verifies the current one). */
+export function changePassword(current_password: string, new_password: string): Promise<void> {
+	return post<void>('/auth/change-password', { current_password, new_password });
+}

@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { Pill, LogOut } from '@lucide/svelte';
+	import { Pill, LogOut, KeyRound } from '@lucide/svelte';
+	import ChangePasswordModal from './ChangePasswordModal.svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { useQueryClient, createQuery } from '@tanstack/svelte-query';
@@ -17,6 +18,7 @@
 		retry: false
 	}));
 	const role = $derived(user.data?.role);
+	let pwOpen = $state(false);
 
 	function isActive(href: string): boolean {
 		return href === '/' ? page.url.pathname === '/' : page.url.pathname.startsWith(href);
@@ -72,6 +74,14 @@
 			{/if}
 			<button
 				type="button"
+				onclick={() => (pwOpen = true)}
+				title="Change password"
+				class="grid h-9 w-9 shrink-0 place-items-center rounded-full text-muted transition hover:bg-surface-2 hover:text-fg"
+			>
+				<KeyRound size={16} />
+			</button>
+			<button
+				type="button"
 				onclick={handleLogout}
 				title="Sign out"
 				class="grid h-9 w-9 shrink-0 place-items-center rounded-full text-muted transition hover:bg-surface-2 hover:text-fg"
@@ -79,6 +89,8 @@
 				<LogOut size={16} />
 			</button>
 		</div>
+
+		<ChangePasswordModal bind:open={pwOpen} />
 		<div class="mt-3 flex items-center justify-between">
 			<span class="text-xs text-muted">Theme</span>
 			<ThemeToggle />

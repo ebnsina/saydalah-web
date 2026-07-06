@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
-	import { Plus, Pencil } from '@lucide/svelte';
+	import { Plus, Pencil, KeyRound } from '@lucide/svelte';
 	import { listBranches, createBranch, updateBranch } from '$lib/api/branches';
 	import { listSuppliers, createSupplier, updateSupplier } from '$lib/api/suppliers';
-	import { listUsers, createUser, updateUser } from '$lib/api/users';
+	import { listUsers, createUser, updateUser, resetPassword } from '$lib/api/users';
 	import type { Branch, Supplier, User, Role } from '$lib/types';
 	import { urlParam, setParams } from '$lib/url';
 	import {
@@ -134,6 +134,28 @@
 
 	const pending = $derived(bMut.isPending || sMut.isPending || uMut.isPending);
 
+	// --- reset password ---
+	let resetOpen = $state(false);
+	let resetUser = $state<User | null>(null);
+	let resetPw = $state('');
+	let resetErr = $state<string | null>(null);
+	function openReset(u: User) {
+		resetUser = u;
+		resetPw = '';
+		resetErr = null;
+		resetOpen = true;
+	}
+	const resetMut = createMutation(() => ({
+		mutationFn: (v: { id: string; password: string }) => resetPassword(v.id, v.password),
+		onSuccess: () => (resetOpen = false),
+		onError: (e: Error) => (resetErr = e.message)
+	}));
+	function submitReset() {
+		resetErr = null;
+		if (resetPw.length < 8) return (resetErr = 'Must be at least 8 characters');
+		if (resetUser) resetMut.mutate({ id: resetUser.id, password: resetPw });
+	}
+
 	const editBtn = 'inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs text-muted opacity-0 transition group-hover:opacity-100 hover:bg-surface-2 hover:text-fg';
 </script>
 
@@ -185,7 +207,7 @@
 				<table class="w-full text-sm">
 					<thead class="bg-surface-2/50 text-left text-xs tracking-wide text-muted uppercase"><tr><th class="px-4 py-2.5 font-medium">Name</th><th class="px-4 py-2.5 font-medium">Email</th><th class="px-4 py-2.5 font-medium">Role</th><th class="px-4 py-2.5 font-medium">Branch</th><th class="px-4 py-2.5 font-medium">Status</th><th class="px-4 py-2.5"></th></tr></thead>
 					<tbody class="divide-y divide-surface-2">
-						{#each users.data.items as u (u.id)}<tr class="group hover:bg-surface-2/30"><td class="px-4 py-2.5 font-medium text-fg">{u.full_name || '—'}</td><td class="px-4 py-2.5 text-fg-soft">{u.email}</td><td class="px-4 py-2.5 capitalize text-fg-soft">{u.role}</td><td class="px-4 py-2.5 text-fg-soft">{branchName(u.branch_id)}</td><td class="px-4 py-2.5">{#if u.active}<span class="text-emerald-500">Active</span>{:else}<span class="text-muted">Inactive</span>{/if}</td><td class="px-4 py-2.5 text-right"><button onclick={() => editUser(u)} class={editBtn}><Pencil size={13} /> Edit</button></td></tr>{/each}
+						{#each users.data.items as u (u.id)}<tr class="group hover:bg-surface-2/30"><td class="px-4 py-2.5 font-medium text-fg">{u.full_name || '—'}</td><td class="px-4 py-2.5 text-fg-soft">{u.email}</td><td class="px-4 py-2.5 capitalize text-fg-soft">{u.role}</td><td class="px-4 py-2.5 text-fg-soft">{branchName(u.branch_id)}</td><td class="px-4 py-2.5">{#if u.active}<span class="text-emerald-500">Active</span>{:else}<span class="text-muted">Inactive</span>{/if}</td><td class="px-4 py-2.5 text-right"><div class="flex items-center justify-end gap-1"><button onclick={() => openReset(u)} class={editBtn}><KeyRound size={13} /> Reset</button><button onclick={() => editUser(u)} class={editBtn}><Pencil size={13} /> Edit</button></div></td></tr>{/each}
 					</tbody>
 				</table>
 			</div>
@@ -229,6 +251,17 @@
 		<div class="mt-1 flex justify-end gap-2">
 			<Button variant="secondary" onclick={() => (open = false)}>Cancel</Button>
 			<Button type="submit" disabled={pending}>{pending ? 'Saving…' : 'Save'}</Button>
+		</div>
+	</form>
+</Modal>
+
+<Modal bind:open={resetOpen} title="Reset password">
+	<form onsubmit={(e) => { e.preventDefault(); submitReset(); }} class="flex flex-col gap-3">
+		<p class="text-sm text-muted">Set a new password for <span class="font-medium text-fg">{resetUser?.full_name || resetUser?.email}</span>.</p>
+		<TextInput label="New password" type="password" placeholder="At least 8 characters" bind:value={resetPw} error={resetErr ?? undefined} />
+		<div class="mt-1 flex justify-end gap-2">
+			<Button variant="secondary" onclick={() => (resetOpen = false)}>Cancel</Button>
+			<Button type="submit" disabled={resetMut.isPending}>{resetMut.isPending ? 'Saving…' : 'Reset password'}</Button>
 		</div>
 	</form>
 </Modal>
