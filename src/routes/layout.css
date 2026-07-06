@@ -1,0 +1,79 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/mona-sans';
+@import '@fontsource-variable/geist-mono';
+
+/*
+ * Semantic color tokens. Components use `bg-surface`, `text-fg`, `text-muted`,
+ * `text-accent`, etc. — the values below flip with the theme, so no per-element
+ * `dark:` variants are needed.
+ */
+@theme {
+	--font-sans: 'Mona Sans Variable', ui-sans-serif, system-ui, sans-serif;
+	--font-mono: 'Geist Mono Variable', ui-monospace, 'SF Mono', monospace;
+
+	--color-bg: var(--bg);
+	--color-surface: var(--surface);
+	--color-surface-2: var(--surface-2);
+	--color-surface-3: var(--surface-3);
+	--color-muted: var(--muted);
+	--color-fg-soft: var(--fg-soft);
+	--color-fg: var(--fg);
+	--color-accent: var(--accent);
+	--color-accent-strong: var(--accent-strong);
+}
+
+/* Light theme (default). */
+:root {
+	--bg: oklch(0.98 0.002 260);
+	--surface: oklch(1 0 0);
+	--surface-2: oklch(0.95 0.003 260);
+	--surface-3: oklch(0.89 0.004 260);
+	--muted: oklch(0.52 0.012 260);
+	--fg-soft: oklch(0.36 0.008 260);
+	--fg: oklch(0.21 0.01 260);
+	--accent: oklch(0.55 0.15 232);
+	--accent-strong: oklch(0.48 0.16 232);
+	color-scheme: light;
+}
+
+/* Dark theme — applied by system preference unless overridden. */
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme='light']) {
+		--bg: oklch(0.15 0.006 260);
+		--surface: oklch(0.19 0.006 260);
+		--surface-2: oklch(0.25 0.007 260);
+		--surface-3: oklch(0.32 0.008 260);
+		--muted: oklch(0.66 0.012 260);
+		--fg-soft: oklch(0.84 0.006 260);
+		--fg: oklch(0.97 0.003 260);
+		--accent: oklch(0.7 0.13 232);
+		--accent-strong: oklch(0.64 0.14 232);
+		color-scheme: dark;
+	}
+}
+
+/* Explicit override via the theme toggle. */
+:root[data-theme='dark'] {
+	--bg: oklch(0.15 0.006 260);
+	--surface: oklch(0.19 0.006 260);
+	--surface-2: oklch(0.25 0.007 260);
+	--surface-3: oklch(0.32 0.008 260);
+	--muted: oklch(0.66 0.012 260);
+	--fg-soft: oklch(0.84 0.006 260);
+	--fg: oklch(0.97 0.003 260);
+	--accent: oklch(0.7 0.13 232);
+	--accent-strong: oklch(0.64 0.14 232);
+	color-scheme: dark;
+}
+
+@layer base {
+	html {
+		background-color: var(--color-bg);
+		-webkit-font-smoothing: antialiased;
+		text-rendering: optimizeLegibility;
+	}
+	input:focus, textarea:focus { outline: none; box-shadow: none; }
+	select:focus { outline: none; box-shadow: none; }
+	select:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
+	* { scrollbar-width: thin; scrollbar-color: var(--color-surface-3) transparent; }
+}
