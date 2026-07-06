@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
-	import { SlidersHorizontal, ArrowLeftRight } from '@lucide/svelte';
-	import { listMovements, adjustStock, transferStock } from '$lib/api/stock';
+	import { SlidersHorizontal, ArrowLeftRight, Undo2, ClipboardCheck, Trash2 } from '@lucide/svelte';
+	import { listMovements, adjustStock, transferStock, returnStock, stockTake } from '$lib/api/stock';
 	import { listBatches } from '$lib/api/inventory';
 	import { listBranches } from '$lib/api/branches';
 	import { branch } from '$lib/stores/branch.svelte';
@@ -13,6 +13,7 @@
 	import Spinner from '$lib/components/states/Spinner.svelte';
 	import ErrorState from '$lib/components/states/ErrorState.svelte';
 	import EmptyState from '$lib/components/states/EmptyState.svelte';
+	import TableSkeleton from '$lib/components/states/TableSkeleton.svelte';
 
 	const qc = useQueryClient();
 	const branchReady = $derived(Boolean(branch.id));
@@ -97,6 +98,50 @@
 	}
 
 	const otherBranches = $derived((branches.data?.items ?? []).filter((b) => b.id !== branch.id));
+
+	// --- return ---
+	let returnOpen = $state(false);
+	let rBatch = $state('');
+	let rQty = $state(1);
+	let rNote = $state('');
+	let rError = $state<string | null>(null);
+	const returnMut = createMutation(() => ({
+		mutationFn: returnStock,
+		onSuccess: () => {
+			invalidate();
+			returnOpen = false;
+			rBatch = '';
+			rQty = 1;
+			rNote = '';
+		},
+		onError: (e: Error) => (rError = e.message)
+	}));
+	function submitReturn() {
+		rError = null;
+		if (!rBatch) return (rError = 'Select a batch');
+		if (rQty < 1) return (rError = 'Quantity must be at least 1');
+		returnMut.mutate({ batch_id: rBatch, qty: rQty, note: rNote });
+	}
+
+	// --- stock-take ---
+	let takeOpen = $state(false);
+	let takeLines = $state<{ batch_id: string; counted_qty: number }[]>([{ batch_id: '', counted_qty: 0 }]);
+	let takeError = $state<string | null>(null);
+	const take = createMutation(() => ({
+		mutationFn: stockTake,
+		onSuccess: () => {
+			invalidate();
+			takeOpen = false;
+			takeLines = [{ batch_id: '', counted_qty: 0 }];
+		},
+		onError: (e: Error) => (takeError = e.message)
+	}));
+	function submitTake() {
+		takeError = null;
+		const valid = takeLines.filter((l) => l.batch_id);
+		if (valid.length === 0) return (takeError = 'Add at least one counted batch');
+		take.mutate({ branch_id: branch.id, lines: valid });
+	}
 </script>
 
 <svelte:head><title>Stock ops — Saydalah</title></svelte:head>
@@ -104,6 +149,8 @@
 <PageHeader title="Stock operations" subtitle="Adjustments, transfers, and the movement ledger.">
 	{#snippet actions()}
 		<BranchSelect />
+		<Button variant="secondary" onclick={() => (takeOpen = true)}><ClipboardCheck size={16} /> Stock-take</Button>
+		<Button variant="secondary" onclick={() => (returnOpen = true)}><Undo2 size={16} /> Return</Button>
 		<Button variant="secondary" onclick={() => (adjustOpen = true)}><SlidersHorizontal size={16} /> Adjust</Button>
 		<Button onclick={() => (transferOpen = true)}><ArrowLeftRight size={16} /> Transfer</Button>
 	{/snippet}
@@ -114,7 +161,7 @@
 	{#if !branchReady}
 		<Spinner label="Selecting branch…" />
 	{:else if movements.isPending}
-		<Spinner label="Loading movements…" />
+		<TableSkeleton cols={5} />
 	{:else if movements.isError}
 		<ErrorState message={movements.error.message} onRetry={() => movements.refetch()} />
 	{:else if movements.data.items.length === 0}
@@ -198,6 +245,55 @@
 		<div class="mt-1 flex justify-end gap-2">
 			<Button variant="secondary" onclick={() => (transferOpen = false)}>Cancel</Button>
 			<Button onclick={submitTransfer} disabled={transfer.isPending}>{transfer.isPending ? 'Transferring…' : 'Transfer'}</Button>
+		</div>
+	</div>
+</Modal>
+
+<!-- Return modal -->
+<Modal bind:open={returnOpen} title="Return stock">
+	<div class="flex flex-col gap-3">
+		<label class="flex flex-col gap-1 text-sm">
+			<span class="font-medium text-fg-soft">Batch</span>
+			<select bind:value={rBatch} class={field}>
+				<option value="" disabled>Select a batch…</option>
+				{#each batches.data?.items ?? [] as b (b.id)}<option value={b.id}>{b.product_name} · {b.batch_no || 'batch'} ({b.quantity})</option>{/each}
+			</select>
+		</label>
+		<label class="flex flex-col gap-1 text-sm">
+			<span class="font-medium text-fg-soft">Quantity returned</span>
+			<input type="number" min="1" bind:value={rQty} class={field} />
+		</label>
+		<label class="flex flex-col gap-1 text-sm">
+			<span class="font-medium text-fg-soft">Note</span>
+			<input bind:value={rNote} placeholder="customer return…" class={field} />
+		</label>
+		{#if rError}<p class="text-sm text-red-500">{rError}</p>{/if}
+		<div class="mt-1 flex justify-end gap-2">
+			<Button variant="secondary" onclick={() => (returnOpen = false)}>Cancel</Button>
+			<Button onclick={submitReturn} disabled={returnMut.isPending}>{returnMut.isPending ? 'Saving…' : 'Return'}</Button>
+		</div>
+	</div>
+</Modal>
+
+<!-- Stock-take modal -->
+<Modal bind:open={takeOpen} title="Physical stock-take">
+	<div class="flex flex-col gap-3">
+		<p class="text-sm text-muted">Record counted quantities; differences are logged as adjustments.</p>
+		{#each takeLines as line, i (i)}
+			<div class="flex items-center gap-2">
+				<select bind:value={line.batch_id} class="{field} flex-1">
+					<option value="" disabled>Select a batch…</option>
+					{#each batches.data?.items ?? [] as b (b.id)}<option value={b.id}>{b.product_name} · {b.batch_no || 'batch'} ({b.quantity})</option>{/each}
+				</select>
+				<input type="number" min="0" bind:value={line.counted_qty} class="{field} w-24 text-right" title="Counted" />
+				<button onclick={() => (takeLines = takeLines.filter((_, j) => j !== i))} class="grid h-7 w-7 place-items-center rounded-full text-muted hover:text-red-500"><Trash2 size={14} /></button>
+			</div>
+		{/each}
+		<button onclick={() => (takeLines = [...takeLines, { batch_id: '', counted_qty: 0 }])} class="self-start text-xs text-accent hover:underline">+ Add line</button>
+		{#if takeError}<p class="text-sm text-red-500">{takeError}</p>{/if}
+		<div class="mt-1 flex justify-end gap-2">
+			<Button variant="secondary" onclick={() => (takeOpen = false)}>Cancel</Button>
+			<Button onclick={submitTake} disabled={take.isPending}>{take.isPending ? 'Reconciling…' : 'Reconcile'}</Button>
 		</div>
 	</div>
 </Modal>

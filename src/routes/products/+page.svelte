@@ -12,6 +12,7 @@
 	import Spinner from '$lib/components/states/Spinner.svelte';
 	import ErrorState from '$lib/components/states/ErrorState.svelte';
 	import EmptyState from '$lib/components/states/EmptyState.svelte';
+	import TableSkeleton from '$lib/components/states/TableSkeleton.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import TextInput from '$lib/components/ui/TextInput.svelte';
 	import SearchInput from '$lib/components/ui/SearchInput.svelte';
@@ -167,7 +168,7 @@
 
 <div class="mt-4">
 	{#if query.isPending}
-		<Spinner label="Loading products…" />
+		<TableSkeleton cols={5} />
 	{:else if query.isError}
 		<ErrorState message={query.error.message} onRetry={() => query.refetch()} />
 	{:else if query.data.items.length === 0}

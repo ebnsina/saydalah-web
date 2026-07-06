@@ -18,6 +18,7 @@
 	import Spinner from '$lib/components/states/Spinner.svelte';
 	import ErrorState from '$lib/components/states/ErrorState.svelte';
 	import EmptyState from '$lib/components/states/EmptyState.svelte';
+	import TableSkeleton from '$lib/components/states/TableSkeleton.svelte';
 
 	const qc = useQueryClient();
 	const branchReady = $derived(Boolean(branch.id));
@@ -105,7 +106,7 @@
 	{#if !branchReady}
 		<Spinner label="Selecting branch…" />
 	{:else if list.isPending}
-		<Spinner label="Loading prescriptions…" />
+		<TableSkeleton cols={6} />
 	{:else if list.isError}
 		<ErrorState message={list.error.message} onRetry={() => list.refetch()} />
 	{:else if list.data.items.length === 0}

@@ -34,3 +34,10 @@ export function transferStock(input: {
 }): Promise<unknown> {
 	return post('/stock/transfers', input);
 }
+
+export function stockTake(input: {
+	branch_id?: string | null;
+	lines: { batch_id: string; counted_qty: number }[];
+}): Promise<unknown> {
+	return post('/stock/stock-takes', input);
+}

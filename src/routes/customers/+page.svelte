@@ -12,6 +12,7 @@
 	import Spinner from '$lib/components/states/Spinner.svelte';
 	import ErrorState from '$lib/components/states/ErrorState.svelte';
 	import EmptyState from '$lib/components/states/EmptyState.svelte';
+	import TableSkeleton from '$lib/components/states/TableSkeleton.svelte';
 
 	const qc = useQueryClient();
 
@@ -82,7 +83,7 @@
 
 <div class="mt-4">
 	{#if query.isPending}
-		<Spinner label="Loading customers…" />
+		<TableSkeleton cols={4} />
 	{:else if query.isError}
 		<ErrorState message={query.error.message} onRetry={() => query.refetch()} />
 	{:else if query.data.items.length === 0}
