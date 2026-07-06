@@ -9,6 +9,8 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import TextInput from '$lib/components/ui/TextInput.svelte';
 	import SearchInput from '$lib/components/ui/SearchInput.svelte';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
+	import Modal from '$lib/components/ui/Modal.svelte';
 
 	const queryClient = useQueryClient();
 
@@ -76,21 +78,16 @@
 
 <svelte:head><title>Products — Saydalah</title></svelte:head>
 
-<div class="flex items-center justify-between gap-4">
-	<div>
-		<h1 class="text-2xl font-semibold text-fg">Products</h1>
-		<p class="text-sm text-muted">Shared drug catalog across all branches.</p>
-	</div>
-	<Button onclick={() => (showForm = !showForm)}>
-		<Plus size={16} /> New product
-	</Button>
-</div>
+<PageHeader title="Products" subtitle="Shared drug catalog across all branches.">
+	{#snippet actions()}
+		<Button onclick={() => (showForm = true)}>
+			<Plus size={16} /> New product
+		</Button>
+	{/snippet}
+</PageHeader>
 
-{#if showForm}
-	<form
-		onsubmit={submit}
-		class="mt-4 grid gap-3 rounded-2xl border border-surface-2 bg-surface p-5 sm:grid-cols-2"
-	>
+<Modal bind:open={showForm} title="New product">
+	<form onsubmit={submit} class="grid gap-3 sm:grid-cols-2">
 		<div class="sm:col-span-2">
 			<TextInput label="Name" bind:value={form.name} error={fieldErrors.name} />
 		</div>
@@ -108,14 +105,14 @@
 		/>
 
 		{#if formError}<p class="text-sm text-red-500 sm:col-span-2">{formError}</p>{/if}
-		<div class="flex gap-2 sm:col-span-2">
+		<div class="mt-1 flex justify-end gap-2 sm:col-span-2">
 			<Button type="submit" disabled={create.isPending}>
 				{create.isPending ? 'Saving…' : 'Save product'}
 			</Button>
 			<Button variant="secondary" onclick={() => (showForm = false)}>Cancel</Button>
 		</div>
 	</form>
-{/if}
+</Modal>
 
 <div class="mt-4">
 	<SearchInput bind:value={search} placeholder="Search by name, generic, or barcode…" />

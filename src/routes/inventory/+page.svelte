@@ -3,8 +3,10 @@
 	import { TriangleAlert, Clock } from '@lucide/svelte';
 	import { listBatches, nearExpiry, lowStock } from '$lib/api/inventory';
 	import { branch } from '$lib/stores/branch.svelte';
-	import { fmtDate, daysUntil } from '$lib/format';
+	import { fmtDate, daysUntil, fmtMoney } from '$lib/format';
 	import BranchSelect from '$lib/components/BranchSelect.svelte';
+	import PageHeader from '$lib/components/ui/PageHeader.svelte';
+	import Card from '$lib/components/ui/Card.svelte';
 	import Spinner from '$lib/components/states/Spinner.svelte';
 	import ErrorState from '$lib/components/states/ErrorState.svelte';
 	import EmptyState from '$lib/components/states/EmptyState.svelte';
@@ -38,20 +40,16 @@
 
 <svelte:head><title>Inventory — Saydalah</title></svelte:head>
 
-<div class="flex flex-wrap items-center justify-between gap-4">
-	<div>
-		<h1 class="text-2xl font-semibold text-fg">Inventory</h1>
-		<p class="text-sm text-muted">Stock, expiry, and reorder alerts for the selected branch.</p>
-	</div>
-	<BranchSelect />
-</div>
+<PageHeader title="Inventory" subtitle="Stock, expiry, and reorder alerts for the selected branch.">
+	{#snippet actions()}<BranchSelect />{/snippet}
+</PageHeader>
 
 {#if !branch.id}
 	<div class="mt-6"><Spinner label="Selecting branch…" /></div>
 {:else}
 	<div class="mt-6 grid gap-6 lg:grid-cols-2">
 		<!-- Low stock -->
-		<section class="rounded-2xl border border-surface-2 bg-surface p-5">
+		<Card>
 			<div class="mb-3 flex items-center gap-2">
 				<TriangleAlert size={18} class="text-amber-500" />
 				<h2 class="font-semibold text-fg">Low stock</h2>
@@ -75,10 +73,10 @@
 					{/each}
 				</ul>
 			{/if}
-		</section>
+		</Card>
 
 		<!-- Near expiry -->
-		<section class="rounded-2xl border border-surface-2 bg-surface p-5">
+		<Card>
 			<div class="mb-3 flex items-center gap-2">
 				<Clock size={18} class="text-amber-500" />
 				<h2 class="font-semibold text-fg">Expiring within 60 days</h2>
@@ -99,7 +97,7 @@
 					{/each}
 				</ul>
 			{/if}
-		</section>
+		</Card>
 	</div>
 
 	<!-- Batches -->
@@ -129,7 +127,7 @@
 								<td class="px-4 py-2.5 text-fg">{b.product_name}</td>
 								<td class="px-4 py-2.5 font-mono text-xs text-muted">{b.batch_no || '—'}</td>
 								<td class="px-4 py-2.5 text-right text-fg-soft">{b.quantity}</td>
-								<td class="px-4 py-2.5 text-right font-mono text-fg-soft">{b.sale_price}</td>
+								<td class="px-4 py-2.5 text-right font-mono text-fg-soft">{fmtMoney(b.sale_price)}</td>
 								<td class="px-4 py-2.5 {expiryTone(b.expiry_date)}">{fmtDate(b.expiry_date)}</td>
 							</tr>
 						{/each}

@@ -99,6 +99,26 @@ export interface OnHand {
 	on_hand: number;
 }
 
+export type PoStatus = 'draft' | 'ordered' | 'received' | 'cancelled';
+
+export interface PurchaseOrderItem {
+	product_id: string;
+	qty: number;
+	unit_cost: string;
+}
+
+export interface PurchaseOrder {
+	id: string;
+	branch_id: string;
+	supplier_id: string;
+	status: PoStatus;
+	reference: string;
+	ordered_at: string | null;
+	received_at: string | null;
+	created_at: string;
+	items: PurchaseOrderItem[];
+}
+
 export type PaymentMethod = 'cash' | 'card' | 'mobile';
 
 export interface SaleItem {

@@ -4,6 +4,7 @@
 	import { listProducts, getProductByBarcode } from '$lib/api/products';
 	import { createSale } from '$lib/api/sales';
 	import { branch } from '$lib/stores/branch.svelte';
+	import { fmtMoney } from '$lib/format';
 	import { validate, saleSchema } from '$lib/validation';
 	import type { Product, Sale, PaymentMethod } from '$lib/types';
 	import BranchSelect from '$lib/components/BranchSelect.svelte';
@@ -117,15 +118,15 @@
 		<ul class="mt-4 divide-y divide-surface-2 text-sm">
 			{#each receipt.items as it (it.batch_id)}
 				<li class="flex items-center justify-between py-2">
-					<span class="text-fg-soft">{it.qty} × <span class="font-mono">{it.unit_price}</span></span>
-					<span class="font-mono text-fg">{(it.qty * Number(it.unit_price)).toFixed(2)}</span>
+					<span class="text-fg-soft">{it.qty} × <span class="font-mono">{fmtMoney(it.unit_price)}</span></span>
+					<span class="font-mono text-fg">{fmtMoney(it.qty * Number(it.unit_price))}</span>
 				</li>
 			{/each}
 		</ul>
 		<dl class="mt-3 space-y-1 border-t border-surface-2 pt-3 text-sm">
-			<div class="flex justify-between"><dt class="text-muted">Subtotal</dt><dd class="font-mono text-fg-soft">{receipt.subtotal}</dd></div>
-			<div class="flex justify-between"><dt class="text-muted">Discount</dt><dd class="font-mono text-fg-soft">{receipt.discount}</dd></div>
-			<div class="flex justify-between text-base font-semibold"><dt class="text-fg">Total</dt><dd class="font-mono text-fg">{receipt.total}</dd></div>
+			<div class="flex justify-between"><dt class="text-muted">Subtotal</dt><dd class="font-mono text-fg-soft">{fmtMoney(receipt.subtotal)}</dd></div>
+			<div class="flex justify-between"><dt class="text-muted">Discount</dt><dd class="font-mono text-fg-soft">{fmtMoney(receipt.discount)}</dd></div>
+			<div class="flex justify-between text-base font-semibold"><dt class="text-fg">Total</dt><dd class="font-mono text-fg">{fmtMoney(receipt.total)}</dd></div>
 		</dl>
 		<Button class="mt-5 w-full" onclick={() => (receipt = null)}>New sale</Button>
 	</div>
