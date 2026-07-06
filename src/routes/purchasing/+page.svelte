@@ -29,9 +29,9 @@
 		queryFn: () => listProducts({})
 	}));
 
-	const supplierName = $derived((id: string) =>
-		suppliers.data?.items.find((s) => s.id === id)?.name ?? '—'
-	);
+	function supplierName(id: string): string {
+		return suppliers.data?.items.find((s) => s.id === id)?.name ?? '—';
+	}
 
 	const statusTone: Record<string, string> = {
 		draft: 'bg-surface-2 text-muted',
@@ -75,6 +75,7 @@
 	}
 
 	// --- receive order ---
+	let receiveOpen = $state(false);
 	let receiving = $state<PurchaseOrder | null>(null);
 	let lines = $state<ReceiveLine[]>([]);
 	let receiveError = $state<string | null>(null);
@@ -82,6 +83,7 @@
 	function openReceive(po: PurchaseOrder) {
 		receiving = po;
 		receiveError = null;
+		receiveOpen = true;
 		lines = po.items.map((it) => ({
 			product_id: it.product_id,
 			batch_no: '',
@@ -98,7 +100,7 @@
 			qc.invalidateQueries({ queryKey: ['purchase-orders'] });
 			qc.invalidateQueries({ queryKey: ['batches'] });
 			qc.invalidateQueries({ queryKey: ['low-stock'] });
-			receiving = null;
+			receiveOpen = false;
 		},
 		onError: (e: Error) => (receiveError = e.message)
 	}));
@@ -111,9 +113,9 @@
 		receive.mutate({ id: receiving.id, lines: payload });
 	}
 
-	const productName = $derived((id: string) =>
-		products.data?.items.find((p) => p.id === id)?.name ?? id.slice(0, 8)
-	);
+	function productName(id: string): string {
+		return products.data?.items.find((p) => p.id === id)?.name ?? id.slice(0, 8);
+	}
 
 	const field =
 		'rounded-full border border-surface-2 bg-surface px-3 py-1.5 text-sm text-fg focus:border-accent focus:outline-none';
@@ -218,7 +220,7 @@
 </Modal>
 
 <!-- Receive modal -->
-<Modal open={receiving !== null} title="Receive goods">
+<Modal bind:open={receiveOpen} title="Receive goods">
 	{#if receiving}
 		<div class="flex flex-col gap-3">
 			<p class="text-sm text-muted">Enter the received batches for each line.</p>
@@ -236,7 +238,7 @@
 			{#if receiveError}<p class="text-sm text-red-500">{receiveError}</p>{/if}
 			<div class="mt-1 flex justify-end gap-2">
 				<Button onclick={submitReceive} disabled={receive.isPending}>{receive.isPending ? 'Receiving…' : 'Receive into stock'}</Button>
-				<Button variant="secondary" onclick={() => (receiving = null)}>Cancel</Button>
+				<Button variant="secondary" onclick={() => (receiveOpen = false)}>Cancel</Button>
 			</div>
 		</div>
 	{/if}

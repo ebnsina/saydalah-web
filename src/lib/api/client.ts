@@ -46,16 +46,35 @@ async function refreshAccessToken(): Promise<boolean> {
 	return refreshing;
 }
 
+const TIMEOUT_MS = 12_000;
+
 async function request<T>(path: string, init: RequestInit = {}, allowRetry = true): Promise<T> {
 	const token = getAccessToken();
-	const res = await fetch(`${BASE_URL}${path}`, {
-		...init,
-		headers: {
-			'Content-Type': 'application/json',
-			...(token ? { Authorization: `Bearer ${token}` } : {}),
-			...init.headers
+
+	// Abort the request if it takes too long, so the UI never hangs forever on a
+	// spinner — the query surfaces a friendly timeout error instead.
+	const controller = new AbortController();
+	const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+	let res: Response;
+	try {
+		res = await fetch(`${BASE_URL}${path}`, {
+			...init,
+			signal: controller.signal,
+			headers: {
+				'Content-Type': 'application/json',
+				...(token ? { Authorization: `Bearer ${token}` } : {}),
+				...init.headers
+			}
+		});
+	} catch (err) {
+		if (err instanceof DOMException && err.name === 'AbortError') {
+			throw new Error('The request timed out. Check your connection and try again.');
 		}
-	});
+		throw new Error('Could not reach the server. Check your connection and try again.');
+	} finally {
+		clearTimeout(timer);
+	}
 
 	// Expired/invalid access token: refresh once and retry (never for auth routes).
 	if (res.status === 401 && allowRetry && !path.startsWith('/auth/') && getRefreshToken()) {
