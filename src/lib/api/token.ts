@@ -8,6 +8,7 @@
  */
 
 import { browser } from '$app/environment';
+import { session } from '$lib/stores/session.svelte';
 
 const ACCESS_KEY = 'saydalah_access';
 const REFRESH_KEY = 'saydalah_refresh';
@@ -26,6 +27,7 @@ export function getRefreshToken(): string | null {
 export function setTokens(access: string, refresh: string): void {
 	accessToken = access;
 	refreshToken = refresh;
+	session.authed = true; // reactive: chrome/guards update immediately
 	persist(ACCESS_KEY, access);
 	persist(REFRESH_KEY, refresh);
 }
@@ -33,6 +35,7 @@ export function setTokens(access: string, refresh: string): void {
 export function clearTokens(): void {
 	accessToken = null;
 	refreshToken = null;
+	session.authed = false;
 	persist(ACCESS_KEY, null);
 	persist(REFRESH_KEY, null);
 }

@@ -4,12 +4,17 @@
  */
 
 import { get, post } from './client';
-import { getAccessToken, setTokens, getRefreshToken, clearTokens } from './token';
+import { setTokens, getRefreshToken, clearTokens } from './token';
+import { session } from '$lib/stores/session.svelte';
 import type { LoginResponse, User } from '$lib/types';
 
-/** Whether an access token is present (optimistic — the token may be expired). */
+/**
+ * Whether a session exists (optimistic — the token may be expired). Reads the
+ * reactive `session` store so callers inside `$derived`/`$effect` re-run the
+ * instant login or logout changes it.
+ */
 export function isAuthenticated(): boolean {
-	return Boolean(getAccessToken());
+	return session.authed;
 }
 
 /** Exchange credentials for a token pair and persist it. */

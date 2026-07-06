@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import { fade, scale } from 'svelte/transition';
+	import { fade, fly } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import { X } from '@lucide/svelte';
 
@@ -22,7 +22,8 @@
 <svelte:window onkeydown={onKeydown} />
 
 {#if open}
-	<div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 sm:items-center">
+	<!-- Bottom sheet on phones (items-end, full width), centered dialog on ≥sm. -->
+	<div class="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto sm:items-center sm:p-4">
 		<!-- Backdrop -->
 		<button
 			type="button"
@@ -36,9 +37,12 @@
 		<div
 			role="dialog"
 			aria-modal="true"
-			class="relative z-10 my-8 w-full max-w-lg rounded-2xl border border-surface-2 bg-surface p-6"
-			transition:scale={{ duration: 180, start: 0.96, opacity: 0, easing: cubicOut }}
+			class="relative z-10 max-h-[92vh] w-full overflow-y-auto rounded-t-3xl border border-surface-2 bg-surface p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:my-8 sm:max-w-lg sm:rounded-2xl sm:p-6 sm:pb-6"
+			transition:fly={{ y: 80, duration: 240, opacity: 0, easing: cubicOut }}
 		>
+			<!-- Drag handle (mobile affordance) -->
+			<div class="mx-auto mb-3 h-1.5 w-10 rounded-full bg-surface-3 sm:hidden"></div>
+
 			<div class="mb-4 flex items-center justify-between gap-4">
 				<h2 class="text-lg font-semibold text-fg">{title}</h2>
 				<button
