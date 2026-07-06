@@ -72,8 +72,8 @@
 				</div>
 
 				<!-- White rounded content sheet inset on the gray canvas. -->
-				<div class="flex-1 p-3 lg:p-4">
-					<main class="mx-auto min-h-full w-full max-w-6xl rounded-2xl border border-surface-2 bg-surface p-5 lg:p-8">
+				<div class="flex-1 p-1">
+					<main class="min-h-full w-full rounded-2xl border border-surface-2 bg-surface p-5 lg:p-8">
 						{@render children()}
 					</main>
 				</div>

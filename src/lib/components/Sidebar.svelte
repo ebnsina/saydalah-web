@@ -29,7 +29,7 @@
 	}
 </script>
 
-<aside class="flex h-full w-64 flex-col border-r border-surface-2 bg-bg">
+<aside class="flex h-full w-64 flex-col bg-bg">
 	<a href="/" onclick={onNavigate} class="flex items-center gap-2 px-5 py-4 font-semibold tracking-tight">
 		<span class="grid h-8 w-8 place-items-center rounded-xl bg-accent/15 text-accent">
 			<Pill size={18} />
