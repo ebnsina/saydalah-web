@@ -1,18 +1,23 @@
 <script lang="ts">
-	import { createQuery } from '@tanstack/svelte-query';
+	import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
 	import { page } from '$app/state';
 	import { ArrowLeft, Phone, MapPin, ShoppingCart, ClipboardList, Printer, CircleCheck, Clock, Wallet } from '@lucide/svelte';
 	import { getCustomer } from '$lib/api/customers';
-	import { listSales } from '$lib/api/sales';
+	import { listSales, recordPayment } from '$lib/api/sales';
 	import { listPrescriptions } from '$lib/api/prescriptions';
 	import { branch } from '$lib/stores/branch.svelte';
 	import { fmtDate, fmtMoney } from '$lib/format';
+	import type { Sale } from '$lib/types';
 	import Card from '$lib/components/ui/Card.svelte';
 	import StatCard from '$lib/components/ui/StatCard.svelte';
+	import Modal from '$lib/components/ui/Modal.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
+	import TextInput from '$lib/components/ui/TextInput.svelte';
 	import Spinner from '$lib/components/states/Spinner.svelte';
 	import ErrorState from '$lib/components/states/ErrorState.svelte';
 	import EmptyState from '$lib/components/states/EmptyState.svelte';
 
+	const qc = useQueryClient();
 	const id = $derived(page.params.id ?? '');
 	const branchReady = $derived(Boolean(branch.id));
 
@@ -31,6 +36,36 @@
 	const activeSales = $derived((sales.data?.items ?? []).filter((s) => !s.voided_at));
 	const totalSpent = $derived(activeSales.reduce((t, s) => t + Number(s.total), 0));
 	const outstanding = $derived(activeSales.reduce((t, s) => t + (Number(s.total) - Number(s.paid)), 0));
+
+	// --- take payment on a due sale ---
+	let payOpen = $state(false);
+	let paying = $state<Sale | null>(null);
+	let payAmount = $state(0);
+	let payError = $state<string | null>(null);
+	function due(s: Sale) {
+		return Number(s.total) - Number(s.paid);
+	}
+	function openPay(s: Sale) {
+		paying = s;
+		payAmount = due(s);
+		payError = null;
+		payOpen = true;
+	}
+	const pay = createMutation(() => ({
+		mutationFn: (v: { id: string; amount: number }) => recordPayment(v.id, v.amount),
+		onSuccess: () => {
+			qc.invalidateQueries({ queryKey: ['customer-sales'] });
+			payOpen = false;
+		},
+		onError: (e: Error) => (payError = e.message)
+	}));
+	function submitPay() {
+		payError = null;
+		if (!paying) return;
+		if (payAmount <= 0) return (payError = 'Enter an amount greater than zero');
+		if (payAmount > due(paying)) return (payError = 'Amount is more than what they owe');
+		pay.mutate({ id: paying.id, amount: payAmount });
+	}
 </script>
 
 <svelte:head><title>{customer.data?.name ?? 'Customer'} — Saydalah</title></svelte:head>
@@ -105,16 +140,19 @@
 								<td class="py-2 text-muted">{fmtDate(s.created_at)}</td>
 								<td class="py-2 text-right font-mono tabular-nums text-fg">{fmtMoney(s.total)}</td>
 								<td class="py-2">
-									{#if s.voided_at}
-										<span class="text-xs text-red-500">Voided</span>
-									{:else if Number(s.total) - Number(s.paid) > 0}
-										<span class="text-xs font-medium text-amber-500">Due {fmtMoney(Number(s.total) - Number(s.paid))}</span>
-									{:else}
-										<span class="text-xs text-emerald-600">Paid</span>
-									{/if}
+									<div class="flex items-center gap-2">
+										{#if s.voided_at}
+											<span class="text-xs text-red-500">Cancelled</span>
+										{:else if due(s) > 0}
+											<span class="text-xs font-medium text-amber-500">Owes {fmtMoney(due(s))}</span>
+											<button onclick={() => openPay(s)} class="inline-flex items-center gap-1 rounded-full border border-surface-2 px-2.5 py-0.5 text-xs text-fg-soft transition hover:bg-surface-2"><Wallet size={12} /> Take payment</button>
+										{:else}
+											<span class="text-xs text-emerald-600">Paid</span>
+										{/if}
+									</div>
 								</td>
 								<td class="py-2 text-right">
-									<a href="/invoice/{s.id}" class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs text-muted opacity-0 transition group-hover:opacity-100 hover:bg-surface-2 hover:text-fg"><Printer size={12} /> Invoice</a>
+									<a href="/invoice/{s.id}" class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs text-muted opacity-0 transition group-hover:opacity-100 hover:bg-surface-2 hover:text-fg"><Printer size={12} /> Receipt</a>
 								</td>
 							</tr>
 						{/each}
@@ -157,4 +195,18 @@
 			{/if}
 		</Card>
 	</div>
+
+	<Modal bind:open={payOpen} title="Take payment">
+		{#if paying}
+			<form onsubmit={(e) => { e.preventDefault(); submitPay(); }} class="flex flex-col gap-3">
+				<p class="text-sm text-muted">This customer owes <span class="font-medium text-amber-500">{fmtMoney(due(paying))}</span> on this sale. Enter how much they're paying now.</p>
+				<TextInput label="Amount" type="number" min={0} bind:value={payAmount} />
+				{#if payError}<p class="text-sm text-red-500">{payError}</p>{/if}
+				<div class="mt-1 flex justify-end gap-2">
+					<Button variant="secondary" onclick={() => (payOpen = false)}>Cancel</Button>
+					<Button type="submit" disabled={pay.isPending}>{pay.isPending ? 'Saving…' : 'Record payment'}</Button>
+				</div>
+			</form>
+		{/if}
+	</Modal>
 {/if}

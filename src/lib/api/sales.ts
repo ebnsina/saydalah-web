@@ -38,3 +38,7 @@ export function listSales(
 export function voidSale(id: string): Promise<Sale> {
 	return post<Sale>(`/sales/${id}/void`);
 }
+
+export function recordPayment(id: string, amount: number): Promise<Sale> {
+	return post<Sale>(`/sales/${id}/payment`, { amount });
+}
