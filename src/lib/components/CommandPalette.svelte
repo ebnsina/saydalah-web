@@ -64,7 +64,7 @@
 			if (cancelled) return;
 			products = p.items.slice(0, 6).map((pr) => {
 				const fi = productIcon(pr.form);
-				return { kind: 'Product', label: pr.name, sub: pr.strength || undefined, href: `/products/${pr.id}`, icon: fi.icon, tint: fi.tint };
+				return { kind: 'View product', label: pr.name, sub: pr.strength || undefined, href: `/products/${pr.id}`, icon: fi.icon, tint: fi.tint };
 			});
 			customers = c.items.slice(0, 6).map((cu) => ({ kind: 'Customer', label: cu.name, sub: cu.phone || undefined, href: `/customers/${cu.id}`, icon: Users, tint: 'text-muted' }));
 			active = 0;

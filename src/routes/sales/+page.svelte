@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
-	import { ScanLine, Plus, Minus, X, Trash2, Check, Ban, Printer, Camera } from '@lucide/svelte';
+	import { ScanLine, Plus, Minus, X, Trash2, Check, Ban, Printer, Camera, Calculator } from '@lucide/svelte';
 	import { listProducts, getProductByBarcode } from '$lib/api/products';
 	import { createSale, listSales, voidSale } from '$lib/api/sales';
 	import { branch } from '$lib/stores/branch.svelte';
@@ -13,6 +13,7 @@
 	import SearchInput from '$lib/components/ui/SearchInput.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Combobox from '$lib/components/ui/Combobox.svelte';
+	import NumPad from '$lib/components/ui/NumPad.svelte';
 	import CameraScanner from '$lib/components/CameraScanner.svelte';
 	import { getMeta } from '$lib/api/meta';
 	import { listCustomers } from '$lib/api/customers';
@@ -68,9 +69,15 @@
 	let search = $state('');
 	let debounced = $state('');
 	let paymentMethod = $state('cash');
-	let discount = $state(0);
+	// Discount is kept as a string so the on-screen keypad can drive it; maths use discountNum.
+	let discountText = $state('');
+	const discountNum = $derived(Number(discountText) || 0);
+	let showPad = $state(false); // reveal the checkout keypad (touch tills)
 	let saleError = $state<string | null>(null);
 	let receipt = $state<Sale | null>(null);
+	// Post-sale cash handling on the receipt (uses the real server total → exact change).
+	let cashText = $state('');
+	const change = $derived(receipt ? Number(cashText || 0) - Number(receipt.total) : 0);
 
 	$effect(() => {
 		const term = search;
@@ -125,7 +132,9 @@
 		onSuccess: (sale: Sale) => {
 			receipt = sale;
 			cart = [];
-			discount = 0;
+			discountText = '';
+			showPad = false;
+			cashText = '';
 			customerId = '';
 			onAccount = false;
 			// Stock changed — inventory views are now stale.
@@ -150,7 +159,7 @@
 		saleError = null;
 		const payload = {
 			payment_method: paymentMethod as PaymentMethod,
-			discount,
+			discount: discountNum,
 			lines: cart.map((l) => ({ product_id: l.product.id, qty: l.qty }))
 		};
 		const result = validate(saleSchema, payload);
@@ -284,6 +293,22 @@
 			{#if Number(receipt.tax) > 0}<div class="flex justify-between"><dt class="text-muted">Tax</dt><dd class="font-mono text-fg-soft">{fmtMoney(receipt.tax)}</dd></div>{/if}
 			<div class="flex justify-between text-base font-semibold"><dt class="text-fg">Total</dt><dd class="font-mono text-fg">{fmtMoney(receipt.total)}</dd></div>
 		</dl>
+
+		<!-- Make change: enter cash received against the real total. -->
+		<div class="mt-4 rounded-2xl border border-surface-2 bg-bg p-3">
+			<div class="mb-2 flex items-center justify-between text-sm">
+				<span class="text-muted">Cash received</span>
+				<span class="font-mono text-fg">{cashText ? fmtMoney(cashText) : '—'}</span>
+			</div>
+			<NumPad bind:value={cashText} />
+			{#if cashText}
+				<div class="mt-3 flex items-center justify-between border-t border-surface-2 pt-3 text-sm font-semibold">
+					<span class={change < 0 ? 'text-amber-500' : 'text-emerald-600'}>{change < 0 ? 'Short by' : 'Change due'}</span>
+					<span class="font-mono {change < 0 ? 'text-amber-500' : 'text-emerald-600'}">{fmtMoney(Math.abs(change))}</span>
+				</div>
+			{/if}
+		</div>
+
 		<div class="mt-5 grid grid-cols-2 gap-2">
 			<a
 				href="/receipt/{receipt.id}"
@@ -410,10 +435,28 @@
 						<input type="checkbox" bind:checked={onAccount} class="h-4 w-4 accent-[var(--color-accent)]" />
 					</label>
 				{/if}
-				<label class="flex items-center justify-between text-sm">
+				<div class="flex items-center justify-between text-sm">
 					<span class="text-muted">Discount</span>
-					<input type="number" min="0" bind:value={discount} class="w-24 rounded-full border border-surface-2 bg-surface px-3 py-1.5 text-right font-mono text-fg focus:border-accent focus:outline-none" />
-				</label>
+					<div class="flex items-center gap-1.5">
+						<input inputmode="decimal" bind:value={discountText} placeholder="0" class="w-24 rounded-full border border-surface-2 bg-surface px-3 py-1.5 text-right font-mono text-fg focus:border-accent focus:outline-none" />
+						<button
+							type="button"
+							onclick={() => (showPad = !showPad)}
+							aria-label="Toggle keypad"
+							title="On-screen keypad"
+							class="grid h-8 w-8 place-items-center rounded-full border border-surface-2 transition {showPad ? 'border-accent text-accent' : 'text-muted hover:bg-surface-2'}"
+						>
+							<Calculator size={15} />
+						</button>
+					</div>
+				</div>
+
+				{#if showPad}
+					<div class="rounded-2xl border border-surface-2 bg-bg p-3">
+						<p class="mb-2 text-center text-xs text-muted">Discount amount</p>
+						<NumPad bind:value={discountText} />
+					</div>
+				{/if}
 
 				{#if taxRate > 0}
 					<p class="text-right text-xs text-muted">+ {(taxRate * 100).toFixed(taxRate * 100 % 1 === 0 ? 0 : 2)}% VAT added at checkout</p>
