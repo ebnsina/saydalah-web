@@ -126,7 +126,7 @@
 	{#if !branchReady}
 		<Spinner label="Selecting branch…" />
 	{:else if list.isPending}
-		<TableSkeleton cols={6} />
+		<TableSkeleton cols={5} />
 	{:else if list.isError}
 		<ErrorState message={list.error.message} onRetry={() => list.refetch()} />
 	{:else if list.data.items.length === 0}
@@ -141,7 +141,6 @@
 						<th class="px-4 py-2.5 text-right font-medium">Items</th>
 						<th class="px-4 py-2.5 font-medium">Created</th>
 						<th class="px-4 py-2.5 font-medium">Status</th>
-						<th class="px-4 py-2.5"></th>
 					</tr>
 				</thead>
 				<tbody class="divide-y divide-surface-2">
@@ -152,21 +151,19 @@
 							<td class="px-4 py-2.5 text-right tabular-nums text-fg-soft">{p.items?.length ?? 0}</td>
 							<td class="px-4 py-2.5 text-muted">{fmtDate(p.created_at)}</td>
 							<td class="px-4 py-2.5">
-								{#if p.dispensed_at}
-									<span class="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-500"><CircleCheck size={12} />Dispensed</span>
-								{:else}
-									<span class="inline-flex items-center gap-1 rounded-full bg-accent/10 px-2.5 py-0.5 text-xs font-medium text-accent"><Clock size={12} />Pending</span>
-								{/if}
-							</td>
-							<td class="px-4 py-2.5 text-right">
-								{#if !p.dispensed_at}
-									<button
-										onclick={() => openDispense(p)}
-										class="inline-flex items-center gap-1 rounded-full border border-surface-2 px-3 py-1 text-xs text-fg-soft transition hover:bg-surface-2"
-									>
-										<PillBottle size={13} /> Dispense
-									</button>
-								{/if}
+								<div class="flex items-center gap-2">
+									{#if p.dispensed_at}
+										<span class="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-tight text-emerald-500"><CircleCheck size={12} />Dispensed</span>
+									{:else}
+										<span class="inline-flex items-center gap-1 rounded-full bg-accent/10 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-tight text-accent"><Clock size={12} />Pending</span>
+										<button
+											onclick={() => openDispense(p)}
+											class="inline-flex items-center gap-1 rounded-full border border-surface-2 px-2.5 py-0.5 text-xs text-fg-soft transition hover:bg-surface-2"
+										>
+											<PillBottle size={12} /> Dispense
+										</button>
+									{/if}
+								</div>
 							</td>
 						</tr>
 					{/each}

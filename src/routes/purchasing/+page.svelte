@@ -165,7 +165,7 @@
 	{#if !branchReady}
 		<Spinner label="Selecting branch…" />
 	{:else if orders.isPending}
-		<TableSkeleton cols={6} />
+		<TableSkeleton cols={5} />
 	{:else if orders.isError}
 		<ErrorState message={orders.error.message} onRetry={() => orders.refetch()} />
 	{:else if orders.data.items.length === 0}
@@ -180,7 +180,6 @@
 						<th class="px-4 py-2.5 font-medium">Status</th>
 						<th class="px-4 py-2.5 text-right font-medium">Items</th>
 						<th class="px-4 py-2.5 font-medium">Ordered</th>
-						<th class="px-4 py-2.5"></th>
 					</tr>
 				</thead>
 				<tbody class="divide-y divide-surface-2">
@@ -190,22 +189,22 @@
 							<td class="px-4 py-2.5"><a href="/purchasing/{po.id}" class="font-mono text-xs text-fg-soft transition hover:text-accent hover:underline">{po.reference || po.id.slice(0, 8)}</a></td>
 							<td class="px-4 py-2.5 text-fg">{supplierName(po.supplier_id)}</td>
 							<td class="px-4 py-2.5">
-								<span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium capitalize {statusTone[po.status]}">
-									<SIcon size={12} />{po.status}
-								</span>
+								<div class="flex items-center gap-2">
+									<span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-tight {statusTone[po.status]}">
+										<SIcon size={12} />{po.status}
+									</span>
+									{#if po.status === 'ordered'}
+										<button
+											onclick={() => openReceive(po)}
+											class="inline-flex items-center gap-1 rounded-full border border-surface-2 px-2.5 py-0.5 text-xs text-fg-soft transition hover:bg-surface-2"
+										>
+											<PackageCheck size={12} /> Receive
+										</button>
+									{/if}
+								</div>
 							</td>
 							<td class="px-4 py-2.5 text-right tabular-nums text-fg-soft">{po.items?.length ?? 0}</td>
 							<td class="px-4 py-2.5 text-muted">{po.ordered_at ? fmtDate(po.ordered_at) : '—'}</td>
-							<td class="px-4 py-2.5 text-right">
-								{#if po.status === 'ordered'}
-									<button
-										onclick={() => openReceive(po)}
-										class="inline-flex items-center gap-1 rounded-full border border-surface-2 px-3 py-1 text-xs text-fg-soft transition hover:bg-surface-2"
-									>
-										<PackageCheck size={13} /> Receive
-									</button>
-								{/if}
-							</td>
 						</tr>
 					{/each}
 				</tbody>

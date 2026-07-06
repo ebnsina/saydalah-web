@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
-	import { Plus, X, Pencil } from '@lucide/svelte';
+	import { Plus, X, Pencil, CircleCheck, CircleSlash, Tag } from '@lucide/svelte';
 	import {
 		listProducts,
 		listCategories,
@@ -123,13 +123,13 @@
 	}
 
 	const categoryOptions = $derived([
-		{ value: '', label: 'All categories' },
-		...(categories.data?.items ?? []).map((c) => ({ value: c, label: c }))
+		{ value: '', label: 'All categories', icon: Tag, tint: 'text-muted' },
+		...(categories.data?.items ?? []).map((c) => ({ value: c, label: c, icon: Tag, tint: 'text-accent' }))
 	]);
 	const statusOptions = [
-		{ value: '', label: 'Any status' },
-		{ value: 'true', label: 'Active' },
-		{ value: 'false', label: 'Inactive' }
+		{ value: '', label: 'Any status', icon: CircleSlash, tint: 'text-muted' },
+		{ value: 'true', label: 'Active', icon: CircleCheck, tint: 'text-emerald-500' },
+		{ value: 'false', label: 'Inactive', icon: CircleSlash, tint: 'text-red-500' }
 	];
 </script>
 
@@ -244,7 +244,7 @@
 									<div>
 										<div class="flex items-center gap-2">
 											<a href="/products/{p.id}" class="font-medium text-fg transition hover:text-accent hover:underline">{p.name}</a>
-											{#if !p.active}<span class="rounded-full bg-surface-2 px-2 py-0.5 text-[10px] font-medium text-muted">Inactive</span>{/if}
+											{#if !p.active}<span class="rounded-full bg-surface-2 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-tight text-muted">Inactive</span>{/if}
 										</div>
 										{#if p.generic_name}<div class="text-xs text-muted">{p.generic_name}</div>{/if}
 									</div>
