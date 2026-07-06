@@ -11,10 +11,12 @@
 	import { branch } from '$lib/stores/branch.svelte';
 	import { fmtDate } from '$lib/format';
 	import type { Prescription, PaymentMethod } from '$lib/types';
+	import { productIcon } from '$lib/productIcon';
 	import BranchSelect from '$lib/components/BranchSelect.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
+	import Combobox from '$lib/components/ui/Combobox.svelte';
 	import Spinner from '$lib/components/states/Spinner.svelte';
 	import ErrorState from '$lib/components/states/ErrorState.svelte';
 	import EmptyState from '$lib/components/states/EmptyState.svelte';
@@ -34,6 +36,16 @@
 	function customerName(id: string): string {
 		return customers.data?.items.find((c) => c.id === id)?.name ?? '—';
 	}
+
+	const productOptions = $derived(
+		(products.data?.items ?? []).map((p) => {
+			const fi = productIcon(p.form);
+			return { value: p.id, label: p.name, sublabel: p.strength || undefined, icon: fi.icon, tint: fi.tint };
+		})
+	);
+	const customerOptions = $derived(
+		(customers.data?.items ?? []).map((c) => ({ value: c.id, label: c.name, sublabel: c.phone || undefined }))
+	);
 
 	const field =
 		'rounded-full border border-surface-2 bg-surface px-3 py-1.5 text-sm text-fg focus:border-accent focus:outline-none';
@@ -161,10 +173,7 @@
 	<div class="flex flex-col gap-3">
 		<label class="flex flex-col gap-1 text-sm">
 			<span class="font-medium text-fg-soft">Customer</span>
-			<select bind:value={customerId} class={field}>
-				<option value="" disabled>Choose a customer…</option>
-				{#each customers.data?.items ?? [] as c (c.id)}<option value={c.id}>{c.name}</option>{/each}
-			</select>
+			<Combobox bind:value={customerId} options={customerOptions} placeholder="Choose a customer…" />
 		</label>
 		<label class="flex flex-col gap-1 text-sm">
 			<span class="font-medium text-fg-soft">Doctor</span>
@@ -175,10 +184,9 @@
 			<span class="text-sm font-medium text-fg-soft">Items</span>
 			{#each items as item, i (i)}
 				<div class="flex items-center gap-2">
-					<select bind:value={item.product_id} class="{field} flex-1">
-						<option value="" disabled>Product…</option>
-						{#each products.data?.items ?? [] as p (p.id)}<option value={p.id}>{p.name}</option>{/each}
-					</select>
+					<div class="min-w-0 flex-1">
+						<Combobox bind:value={item.product_id} options={productOptions} placeholder="Product…" />
+					</div>
 					<input type="number" min="1" bind:value={item.qty} class="{field} w-20 text-right" title="Quantity" />
 					<input bind:value={item.dosage} placeholder="dosage" class="{field} w-28" title="Dosage" />
 					<button onclick={() => (items = items.filter((_, j) => j !== i))} class="grid h-7 w-7 place-items-center rounded-full text-muted hover:text-red-500"><Trash2 size={14} /></button>

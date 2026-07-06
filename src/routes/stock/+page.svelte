@@ -7,7 +7,9 @@
 	import { branch } from '$lib/stores/branch.svelte';
 	import { fmtDate } from '$lib/format';
 	import { movementIcon } from '$lib/movementIcon';
+	import { productIcon } from '$lib/productIcon';
 	import BranchSelect from '$lib/components/BranchSelect.svelte';
+	import Combobox from '$lib/components/ui/Combobox.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
@@ -91,6 +93,20 @@
 	}
 
 	const otherBranches = $derived((branches.data?.items ?? []).filter((b) => b.id !== branch.id));
+
+	const batchOptions = $derived(
+		(batches.data?.items ?? []).map((b) => {
+			const fi = productIcon(b.product_form);
+			return {
+				value: b.id,
+				label: b.product_name,
+				sublabel: `${b.batch_no || 'batch'} · ${b.quantity}`,
+				icon: fi.icon,
+				tint: fi.tint
+			};
+		})
+	);
+	const branchOptions = $derived(otherBranches.map((b) => ({ value: b.id, label: b.name })));
 
 	// --- return ---
 	let returnOpen = $state(false);
@@ -198,10 +214,7 @@
 	<div class="flex flex-col gap-3">
 		<label class="flex flex-col gap-1 text-sm">
 			<span class="font-medium text-fg-soft">Batch</span>
-			<select bind:value={aBatch} class={field}>
-				<option value="" disabled>Select a batch…</option>
-				{#each batches.data?.items ?? [] as b (b.id)}<option value={b.id}>{b.product_name} · {b.batch_no || 'batch'} ({b.quantity})</option>{/each}
-			</select>
+			<Combobox bind:value={aBatch} options={batchOptions} placeholder="Select a batch…" />
 		</label>
 		<label class="flex flex-col gap-1 text-sm">
 			<span class="font-medium text-fg-soft">Delta (negative to reduce)</span>
@@ -224,17 +237,11 @@
 	<div class="flex flex-col gap-3">
 		<label class="flex flex-col gap-1 text-sm">
 			<span class="font-medium text-fg-soft">Batch</span>
-			<select bind:value={tBatch} class={field}>
-				<option value="" disabled>Select a batch…</option>
-				{#each batches.data?.items ?? [] as b (b.id)}<option value={b.id}>{b.product_name} · {b.batch_no || 'batch'} ({b.quantity})</option>{/each}
-			</select>
+			<Combobox bind:value={tBatch} options={batchOptions} placeholder="Select a batch…" />
 		</label>
 		<label class="flex flex-col gap-1 text-sm">
 			<span class="font-medium text-fg-soft">Destination branch</span>
-			<select bind:value={tBranch} class={field}>
-				<option value="" disabled>Select a branch…</option>
-				{#each otherBranches as b (b.id)}<option value={b.id}>{b.name}</option>{/each}
-			</select>
+			<Combobox bind:value={tBranch} options={branchOptions} placeholder="Select a destination branch…" />
 		</label>
 		<label class="flex flex-col gap-1 text-sm">
 			<span class="font-medium text-fg-soft">Quantity</span>
@@ -253,10 +260,7 @@
 	<div class="flex flex-col gap-3">
 		<label class="flex flex-col gap-1 text-sm">
 			<span class="font-medium text-fg-soft">Batch</span>
-			<select bind:value={rBatch} class={field}>
-				<option value="" disabled>Select a batch…</option>
-				{#each batches.data?.items ?? [] as b (b.id)}<option value={b.id}>{b.product_name} · {b.batch_no || 'batch'} ({b.quantity})</option>{/each}
-			</select>
+			<Combobox bind:value={rBatch} options={batchOptions} placeholder="Select a batch…" />
 		</label>
 		<label class="flex flex-col gap-1 text-sm">
 			<span class="font-medium text-fg-soft">Quantity returned</span>
@@ -280,10 +284,7 @@
 		<p class="text-sm text-muted">Record counted quantities; differences are logged as adjustments.</p>
 		{#each takeLines as line, i (i)}
 			<div class="flex items-center gap-2">
-				<select bind:value={line.batch_id} class="{field} flex-1">
-					<option value="" disabled>Select a batch…</option>
-					{#each batches.data?.items ?? [] as b (b.id)}<option value={b.id}>{b.product_name} · {b.batch_no || 'batch'} ({b.quantity})</option>{/each}
-				</select>
+				<div class="min-w-0 flex-1"><Combobox bind:value={line.batch_id} options={batchOptions} placeholder="Select a batch…" /></div>
 				<input type="number" min="0" bind:value={line.counted_qty} class="{field} w-24 text-right" title="Counted" />
 				<button onclick={() => (takeLines = takeLines.filter((_, j) => j !== i))} class="grid h-7 w-7 place-items-center rounded-full text-muted hover:text-red-500"><Trash2 size={14} /></button>
 			</div>

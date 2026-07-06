@@ -7,10 +7,12 @@
 	import { branch } from '$lib/stores/branch.svelte';
 	import { fmtDate, fmtMoney, todayParam } from '$lib/format';
 	import type { PurchaseOrder } from '$lib/types';
+	import { productIcon } from '$lib/productIcon';
 	import BranchSelect from '$lib/components/BranchSelect.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
+	import Combobox from '$lib/components/ui/Combobox.svelte';
 	import Spinner from '$lib/components/states/Spinner.svelte';
 	import ErrorState from '$lib/components/states/ErrorState.svelte';
 	import EmptyState from '$lib/components/states/EmptyState.svelte';
@@ -33,6 +35,13 @@
 	function supplierName(id: string): string {
 		return suppliers.data?.items.find((s) => s.id === id)?.name ?? '—';
 	}
+
+	const productOptions = $derived(
+		(products.data?.items ?? []).map((p) => {
+			const fi = productIcon(p.form);
+			return { value: p.id, label: p.name, sublabel: p.strength || undefined, icon: fi.icon, tint: fi.tint };
+		})
+	);
 
 	const statusTone: Record<string, string> = {
 		draft: 'bg-surface-2 text-muted',
@@ -204,10 +213,9 @@
 			<span class="text-sm font-medium text-fg-soft">Items</span>
 			{#each items as item, i (i)}
 				<div class="flex items-center gap-2">
-					<select bind:value={item.product_id} class="{field} flex-1">
-						<option value="" disabled>Product…</option>
-						{#each products.data?.items ?? [] as p (p.id)}<option value={p.id}>{p.name}</option>{/each}
-					</select>
+					<div class="min-w-0 flex-1">
+						<Combobox bind:value={item.product_id} options={productOptions} placeholder="Product…" />
+					</div>
 					<input type="number" min="1" bind:value={item.qty} class="{field} w-20 text-right" title="Quantity" />
 					<input type="number" min="0" step="0.01" bind:value={item.unit_cost} class="{field} w-24 text-right" title="Unit cost" />
 					<button onclick={() => (items = items.filter((_, j) => j !== i))} class="grid h-7 w-7 place-items-center rounded-full text-muted hover:text-red-500" title="Remove"><Trash2 size={14} /></button>
