@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
-	import { ScanLine, Plus, Minus, X, Trash2, Check, Ban, Printer } from '@lucide/svelte';
+	import { ScanLine, Plus, Minus, X, Trash2, Check, Ban, Printer, Camera } from '@lucide/svelte';
 	import { listProducts, getProductByBarcode } from '$lib/api/products';
 	import { createSale, listSales, voidSale } from '$lib/api/sales';
 	import { branch } from '$lib/stores/branch.svelte';
@@ -14,6 +14,7 @@
 	import SearchInput from '$lib/components/ui/SearchInput.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Combobox from '$lib/components/ui/Combobox.svelte';
+	import CameraScanner from '$lib/components/CameraScanner.svelte';
 
 	const paymentOptions = [
 		{ value: 'cash', label: 'Cash', icon: Banknote, tint: 'text-emerald-500' },
@@ -81,19 +82,25 @@
 		}
 	}
 
-	async function scanBarcode(event: SubmitEvent) {
-		event.preventDefault();
+	let scannerOpen = $state(false);
+
+	async function lookupBarcode(code: string) {
 		barcodeError = null;
-		const code = barcode.trim();
-		if (!code) return;
+		const trimmed = code.trim();
+		if (!trimmed) return;
 		try {
-			addToCart(await getProductByBarcode(code));
+			addToCart(await getProductByBarcode(trimmed));
 			barcode = '';
 		} catch (err) {
 			const msg = err instanceof Error ? err.message : String(err);
 			// The expected failure is an unmatched code — say so plainly.
-			barcodeError = /not found/i.test(msg) ? `No product found for barcode “${code}”.` : msg;
+			barcodeError = /not found/i.test(msg) ? `No product found for barcode “${trimmed}”.` : msg;
 		}
+	}
+
+	function scanBarcode(event: SubmitEvent) {
+		event.preventDefault();
+		lookupBarcode(barcode);
 	}
 
 	const checkout = createMutation(() => ({
@@ -262,8 +269,17 @@
 						placeholder="Scan or type a barcode, then Enter"
 						class="w-full bg-transparent font-mono text-sm text-fg placeholder:text-muted focus:outline-none"
 					/>
+					<button
+						type="button"
+						onclick={() => (scannerOpen = true)}
+						title="Scan with camera"
+						class="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted transition hover:bg-surface-2 hover:text-accent"
+					>
+						<Camera size={17} />
+					</button>
 				</div>
 			</form>
+			<CameraScanner bind:open={scannerOpen} ondetected={lookupBarcode} />
 			{#if barcodeError}<p class="-mt-2 text-sm text-red-500">{barcodeError}</p>{/if}
 
 			<SearchInput bind:value={search} placeholder="Search products to add…" />
