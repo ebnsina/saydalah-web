@@ -4,6 +4,7 @@
 	import { listOrders, createOrder, receiveOrder, type ReceiveLine } from '$lib/api/purchasing';
 	import { listSuppliers } from '$lib/api/suppliers';
 	import { listProducts } from '$lib/api/products';
+	import { lowStock } from '$lib/api/inventory';
 	import { branch } from '$lib/stores/branch.svelte';
 	import { fmtDate, fmtMoney, todayParam } from '$lib/format';
 	import type { PurchaseOrder } from '$lib/types';
@@ -65,6 +66,23 @@
 		reference = '';
 		items = [{ product_id: '', qty: 1, unit_cost: 0 }];
 		createError = null;
+	}
+
+	// Prefill the order with everything at/below its reorder level, topping each
+	// up to twice the reorder level.
+	const low = createQuery(() => ({
+		queryKey: ['low-stock', branch.id],
+		queryFn: () => lowStock(branch.id),
+		enabled: Boolean(branch.id)
+	}));
+	function suggestFromLowStock() {
+		const suggestions = (low.data?.items ?? []).map((l) => ({
+			product_id: l.product_id,
+			qty: Math.max(l.reorder_level * 2 - l.on_hand, 1),
+			unit_cost: 0
+		}));
+		items = suggestions.length ? suggestions : items;
+		createError = suggestions.length ? null : 'Nothing is below its reorder level.';
 	}
 
 	const create = createMutation(() => ({
@@ -210,7 +228,17 @@
 		</label>
 
 		<div class="mt-1 flex flex-col gap-2">
-			<span class="text-sm font-medium text-fg-soft">Items</span>
+			<div class="flex items-center justify-between">
+				<span class="text-sm font-medium text-fg-soft">Items</span>
+				<button
+					type="button"
+					onclick={suggestFromLowStock}
+					class="inline-flex items-center gap-1 rounded-full border border-surface-2 px-2.5 py-1 text-xs text-fg-soft transition hover:bg-surface-2"
+					title="Fill from products at or below reorder level"
+				>
+					<Truck size={13} /> Suggest from low stock{#if low.data}<span class="text-muted"> ({low.data.items.length})</span>{/if}
+				</button>
+			</div>
 			{#each items as item, i (i)}
 				<div class="flex items-center gap-2">
 					<div class="min-w-0 flex-1">
