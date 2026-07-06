@@ -10,7 +10,6 @@
 	import { fmtLongDate, todayParam, monthStartParam, fmtMoney } from '$lib/format';
 	import { productIcon } from '$lib/productIcon';
 	import { urlParam, setParams } from '$lib/url';
-	import BranchSelect from '$lib/components/BranchSelect.svelte';
 	import StatCard from '$lib/components/ui/StatCard.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Tabs from '$lib/components/ui/Tabs.svelte';
@@ -128,7 +127,6 @@
 			</h1>
 			<p class="mt-0.5 text-sm text-muted">{fmtLongDate()}</p>
 		</div>
-		<BranchSelect />
 	</div>
 
 	<!-- Stats -->

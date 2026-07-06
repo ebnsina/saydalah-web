@@ -9,7 +9,6 @@
 	import { fmtDate, fmtMoney, todayParam } from '$lib/format';
 	import type { PurchaseOrder } from '$lib/types';
 	import { productIcon } from '$lib/productIcon';
-	import BranchSelect from '$lib/components/BranchSelect.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
@@ -158,7 +157,6 @@
 
 <PageHeader title="Purchasing" subtitle="Order stock from suppliers and receive it into inventory.">
 	{#snippet actions()}
-		<BranchSelect />
 		<Button onclick={() => (showCreate = true)}><Plus size={16} /> New order</Button>
 	{/snippet}
 </PageHeader>

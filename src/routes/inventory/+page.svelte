@@ -7,7 +7,6 @@
 	import { fmtDate, daysUntil, fmtMoney } from '$lib/format';
 	import { productIcon } from '$lib/productIcon';
 	import { urlParam, setParams } from '$lib/url';
-	import BranchSelect from '$lib/components/BranchSelect.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Tabs from '$lib/components/ui/Tabs.svelte';
 	import Spinner from '$lib/components/states/Spinner.svelte';
@@ -66,9 +65,7 @@
 
 <svelte:head><title>Inventory — Saydalah</title></svelte:head>
 
-<PageHeader title="Inventory" subtitle="Stock, expiry, and reorder alerts for the selected branch.">
-	{#snippet actions()}<BranchSelect />{/snippet}
-</PageHeader>
+<PageHeader title="Inventory" subtitle="Stock, expiry, and reorder alerts for the selected branch." />
 
 <!-- Tabs -->
 <div class="mt-4">

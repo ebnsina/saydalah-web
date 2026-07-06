@@ -8,7 +8,6 @@
 	import { fmtDate } from '$lib/format';
 	import { movementIcon } from '$lib/movementIcon';
 	import { productIcon } from '$lib/productIcon';
-	import BranchSelect from '$lib/components/BranchSelect.svelte';
 	import Combobox from '$lib/components/ui/Combobox.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -228,7 +227,6 @@
 				</div>
 			{/if}
 		</div>
-		<BranchSelect />
 	{/snippet}
 </PageHeader>
 

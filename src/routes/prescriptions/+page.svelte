@@ -12,7 +12,6 @@
 	import { fmtDate } from '$lib/format';
 	import type { Prescription, PaymentMethod } from '$lib/types';
 	import { productIcon } from '$lib/productIcon';
-	import BranchSelect from '$lib/components/BranchSelect.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
@@ -119,7 +118,6 @@
 
 <PageHeader title="Prescriptions" subtitle="Record prescriptions and dispense them (FEFO).">
 	{#snippet actions()}
-		<BranchSelect />
 		<Button onclick={() => (showCreate = true)}><Plus size={16} /> New prescription</Button>
 	{/snippet}
 </PageHeader>

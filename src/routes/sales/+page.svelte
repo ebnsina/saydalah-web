@@ -10,7 +10,6 @@
 	import { productIcon } from '$lib/productIcon';
 	import { Banknote, CreditCard, Smartphone } from '@lucide/svelte';
 	import type { Product, Sale, PaymentMethod } from '$lib/types';
-	import BranchSelect from '$lib/components/BranchSelect.svelte';
 	import SearchInput from '$lib/components/ui/SearchInput.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Combobox from '$lib/components/ui/Combobox.svelte';
@@ -183,7 +182,6 @@
 				class="rounded-full px-3 py-1 font-medium transition {view === 'history' ? 'bg-accent text-accent-contrast' : 'text-muted hover:text-fg'}"
 			>History</button>
 		</div>
-		<BranchSelect />
 	</div>
 </div>
 

@@ -7,7 +7,6 @@
 	import { listPrescriptions } from '$lib/api/prescriptions';
 	import { branch } from '$lib/stores/branch.svelte';
 	import { fmtDate, fmtMoney } from '$lib/format';
-	import BranchSelect from '$lib/components/BranchSelect.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import StatCard from '$lib/components/ui/StatCard.svelte';
 	import Spinner from '$lib/components/states/Spinner.svelte';
@@ -60,7 +59,6 @@
 				</div>
 			</div>
 		</div>
-		<BranchSelect />
 	</div>
 
 	<!-- Summary (current branch) -->

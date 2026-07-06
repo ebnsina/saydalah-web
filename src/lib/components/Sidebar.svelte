@@ -5,6 +5,7 @@
 	import { useQueryClient, createQuery } from '@tanstack/svelte-query';
 	import { me, logout, isAuthenticated } from '$lib/api/auth';
 	import { NAV, canSee } from '$lib/nav';
+	import SidebarBranch from './SidebarBranch.svelte';
 
 	let { onNavigate }: { onNavigate?: () => void } = $props();
 
@@ -35,6 +36,10 @@
 		</span>
 		<span class="text-lg text-fg">Saydalah</span>
 	</a>
+
+	<div class="px-3 pb-2">
+		<SidebarBranch />
+	</div>
 
 	<nav class="flex-1 space-y-1 overflow-y-auto px-3 py-2">
 		{#each NAV as item (item.href)}

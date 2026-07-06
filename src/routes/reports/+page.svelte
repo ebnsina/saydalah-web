@@ -13,7 +13,6 @@
 	import { toCSV, downloadCSV } from '$lib/csv';
 	import BarChart from '$lib/components/ui/BarChart.svelte';
 	import LineChart from '$lib/components/ui/LineChart.svelte';
-	import BranchSelect from '$lib/components/BranchSelect.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import StatCard from '$lib/components/ui/StatCard.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
@@ -92,7 +91,6 @@
 		>
 			<FileText size={15} /> Day-end report
 		</a>
-		<BranchSelect />
 	{/snippet}
 </PageHeader>
 

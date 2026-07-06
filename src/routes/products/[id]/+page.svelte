@@ -9,7 +9,6 @@
 	import { productIcon } from '$lib/productIcon';
 	import { movementIcon } from '$lib/movementIcon';
 	import { fmtDate, fmtMoney, daysUntil } from '$lib/format';
-	import BranchSelect from '$lib/components/BranchSelect.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Spinner from '$lib/components/states/Spinner.svelte';
 	import ErrorState from '$lib/components/states/ErrorState.svelte';
@@ -71,7 +70,6 @@
 				</div>
 			</div>
 		</div>
-		<BranchSelect />
 	</div>
 
 	<div class="mt-6 grid gap-6 lg:grid-cols-2">
