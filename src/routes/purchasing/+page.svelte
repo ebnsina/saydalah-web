@@ -167,7 +167,7 @@
 					{#each orders.data.items as po (po.id)}
 						{@const SIcon = statusIcon[po.status]}
 						<tr class="hover:bg-surface-2/30">
-							<td class="px-4 py-2.5 font-mono text-xs text-fg-soft">{po.reference || po.id.slice(0, 8)}</td>
+							<td class="px-4 py-2.5"><a href="/purchasing/{po.id}" class="font-mono text-xs text-fg-soft transition hover:text-accent hover:underline">{po.reference || po.id.slice(0, 8)}</a></td>
 							<td class="px-4 py-2.5 text-fg">{supplierName(po.supplier_id)}</td>
 							<td class="px-4 py-2.5">
 								<span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium capitalize {statusTone[po.status]}">

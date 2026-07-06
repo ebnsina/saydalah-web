@@ -31,6 +31,10 @@ export function listOrders(branchId: string | null, page = 1): Promise<Page<Purc
 	return get<Page<PurchaseOrder>>(`/purchase-orders?${q.toString()}`);
 }
 
+export function getOrder(id: string): Promise<PurchaseOrder> {
+	return get<PurchaseOrder>(`/purchase-orders/${id}`);
+}
+
 export function createOrder(input: CreatePOInput): Promise<PurchaseOrder> {
 	return post<PurchaseOrder>('/purchase-orders', input);
 }
