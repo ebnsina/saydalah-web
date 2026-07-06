@@ -85,7 +85,7 @@
 		receiving = po;
 		receiveError = null;
 		receiveOpen = true;
-		lines = po.items.map((it) => ({
+		lines = (po.items ?? []).map((it) => ({
 			product_id: it.product_id,
 			batch_no: '',
 			quantity: it.qty,
@@ -161,7 +161,7 @@
 							<td class="px-4 py-2.5">
 								<span class="rounded-full px-2.5 py-0.5 text-xs font-medium capitalize {statusTone[po.status]}">{po.status}</span>
 							</td>
-							<td class="px-4 py-2.5 text-right tabular-nums text-fg-soft">{po.items.length}</td>
+							<td class="px-4 py-2.5 text-right tabular-nums text-fg-soft">{po.items?.length ?? 0}</td>
 							<td class="px-4 py-2.5 text-muted">{po.ordered_at ? fmtDate(po.ordered_at) : '—'}</td>
 							<td class="px-4 py-2.5 text-right">
 								{#if po.status === 'ordered'}
