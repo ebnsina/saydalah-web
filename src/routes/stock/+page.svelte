@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
-	import { SlidersHorizontal, ArrowLeftRight, Undo2, ClipboardCheck, Trash2, PackageX } from '@lucide/svelte';
+	import { SlidersHorizontal, ArrowLeftRight, Undo2, ClipboardCheck, Trash2, PackageX, ChevronDown } from '@lucide/svelte';
 	import { listMovements, adjustStock, transferStock, returnStock, stockTake, purchaseReturn } from '$lib/api/stock';
 	import { listBatches } from '$lib/api/inventory';
 	import { listBranches } from '$lib/api/branches';
@@ -175,18 +175,58 @@
 		if (prQty < 1) return (prError = 'Quantity must be at least 1');
 		prMut.mutate({ batch_id: prBatch, qty: prQty, note: prNote });
 	}
+
+	// --- actions menu ---
+	let menuOpen = $state(false);
+	let menuRoot = $state<HTMLDivElement>();
+	const actionItems = [
+		{ label: 'Adjust stock', desc: 'Correct a batch quantity (±)', icon: SlidersHorizontal, open: () => (adjustOpen = true) },
+		{ label: 'Transfer', desc: 'Move stock to another branch', icon: ArrowLeftRight, open: () => (transferOpen = true) },
+		{ label: 'Customer return', desc: 'Return sold stock back into inventory', icon: Undo2, open: () => (returnOpen = true) },
+		{ label: 'Return to supplier', desc: 'Send damaged or recalled stock back', icon: PackageX, open: () => (prOpen = true) },
+		{ label: 'Stock-take', desc: 'Reconcile physically counted quantities', icon: ClipboardCheck, open: () => (takeOpen = true) }
+	];
+	$effect(() => {
+		if (!menuOpen) return;
+		function onClick(e: MouseEvent) {
+			if (menuRoot && !menuRoot.contains(e.target as Node)) menuOpen = false;
+		}
+		document.addEventListener('click', onClick, true);
+		return () => document.removeEventListener('click', onClick, true);
+	});
 </script>
 
 <svelte:head><title>Stock ops — Saydalah</title></svelte:head>
 
 <PageHeader title="Stock operations" subtitle="Adjustments, transfers, and the movement ledger.">
 	{#snippet actions()}
+		<div class="relative" bind:this={menuRoot}>
+			<Button onclick={() => (menuOpen = !menuOpen)}>
+				Actions <ChevronDown size={15} class="transition {menuOpen ? 'rotate-180' : ''}" />
+			</Button>
+			{#if menuOpen}
+				<div class="absolute right-0 z-20 mt-1.5 w-72 overflow-hidden rounded-2xl border border-surface-2 bg-surface p-1.5 shadow-lg">
+					{#each actionItems as a (a.label)}
+						{@const AIcon = a.icon}
+						<button
+							type="button"
+							onclick={() => {
+								a.open();
+								menuOpen = false;
+							}}
+							class="flex w-full items-start gap-3 rounded-xl px-3 py-2 text-left transition hover:bg-surface-2/60"
+						>
+							<span class="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-surface-2 text-accent"><AIcon size={16} /></span>
+							<span class="min-w-0">
+								<span class="block text-sm font-medium text-fg">{a.label}</span>
+								<span class="block text-xs text-muted">{a.desc}</span>
+							</span>
+						</button>
+					{/each}
+				</div>
+			{/if}
+		</div>
 		<BranchSelect />
-		<Button variant="secondary" onclick={() => (takeOpen = true)}><ClipboardCheck size={16} /> Stock-take</Button>
-		<Button variant="secondary" onclick={() => (returnOpen = true)}><Undo2 size={16} /> Return</Button>
-		<Button variant="secondary" onclick={() => (prOpen = true)}><PackageX size={16} /> To supplier</Button>
-		<Button variant="secondary" onclick={() => (adjustOpen = true)}><SlidersHorizontal size={16} /> Adjust</Button>
-		<Button onclick={() => (transferOpen = true)}><ArrowLeftRight size={16} /> Transfer</Button>
 	{/snippet}
 </PageHeader>
 

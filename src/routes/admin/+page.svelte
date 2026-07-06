@@ -19,6 +19,7 @@
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import TextInput from '$lib/components/ui/TextInput.svelte';
 	import Combobox from '$lib/components/ui/Combobox.svelte';
+	import Tabs from '$lib/components/ui/Tabs.svelte';
 	import Spinner from '$lib/components/states/Spinner.svelte';
 	import ErrorState from '$lib/components/states/ErrorState.svelte';
 	import TableSkeleton from '$lib/components/states/TableSkeleton.svelte';
@@ -167,15 +168,8 @@
 	{/snippet}
 </PageHeader>
 
-<div class="mt-4 flex gap-1 border-b border-surface-2">
-	{#each tabs as t (t.id)}
-		<button
-			onclick={() => setParams({ tab: t.id })}
-			class="border-b-2 px-4 py-2 text-sm font-medium transition {tab === t.id
-				? 'border-accent text-accent'
-				: 'border-transparent text-muted hover:text-fg'}"
-		>{t.label}</button>
-	{/each}
+<div class="mt-4">
+	<Tabs {tabs} active={tab} onSelect={(id) => setParams({ tab: id })} />
 </div>
 
 <div class="mt-4">

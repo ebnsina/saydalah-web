@@ -210,31 +210,7 @@
 			{#if top.isPending}
 				<TableSkeleton cols={4} />
 			{:else if top.data && top.data.items.length > 0}
-				<div class="mb-6">
-					<BarChart money data={top.data.items.slice(0, 8).map((p) => ({ label: p.product_name, value: Number(p.revenue) }))} />
-				</div>
-				<div class="overflow-x-auto">
-					<table class="w-full text-sm">
-						<thead class="text-left text-xs tracking-wide text-muted uppercase">
-							<tr>
-								<th class="py-2 pr-4 font-medium">#</th>
-								<th class="py-2 pr-4 font-medium">Product</th>
-								<th class="py-2 pr-4 text-right font-medium">Units sold</th>
-								<th class="py-2 text-right font-medium">Revenue</th>
-							</tr>
-						</thead>
-						<tbody class="divide-y divide-surface-2">
-							{#each top.data.items as p, i (p.product_id)}
-								<tr>
-									<td class="py-2 pr-4 text-muted">{i + 1}</td>
-									<td class="py-2 pr-4 text-fg">{p.product_name}</td>
-									<td class="py-2 pr-4 text-right font-mono tabular-nums text-fg-soft">{p.units_sold}</td>
-									<td class="py-2 text-right font-mono tabular-nums text-fg-soft">{fmtMoney(p.revenue)}</td>
-								</tr>
-							{/each}
-						</tbody>
-					</table>
-				</div>
+				<BarChart money data={top.data.items.map((p) => ({ label: p.product_name, value: Number(p.revenue) }))} />
 			{:else}
 				<EmptyState title="No sales in this range" />
 			{/if}

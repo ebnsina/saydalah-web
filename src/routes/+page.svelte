@@ -12,6 +12,7 @@
 	import BranchSelect from '$lib/components/BranchSelect.svelte';
 	import StatCard from '$lib/components/ui/StatCard.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
+	import Tabs from '$lib/components/ui/Tabs.svelte';
 	import Spinner from '$lib/components/states/Spinner.svelte';
 	import EmptyState from '$lib/components/states/EmptyState.svelte';
 	import TableSkeleton from '$lib/components/states/TableSkeleton.svelte';
@@ -25,14 +26,7 @@
 
 	const canReport = $derived(user.data?.role === 'admin' || user.data?.role === 'manager');
 	const today = todayParam();
-
 	const tab = $derived(urlParam('tab', 'reorder'));
-	const tabs = $derived([
-		{ id: 'reorder', label: 'Needs reordering', icon: TriangleAlert, count: low.data?.items.length },
-		...(canReport
-			? [{ id: 'top', label: 'Top products this month', icon: Trophy, count: monthTop.data?.items.length }]
-			: [])
-	]);
 
 	// Any authenticated staff can read these.
 	const low = createQuery(() => ({
@@ -99,6 +93,13 @@
 		queryFn: () => inventoryValuation(branch.id),
 		enabled: Boolean(branch.id) && canReport
 	}));
+
+	const tabs = $derived([
+		{ id: 'reorder', label: 'Needs reordering', icon: TriangleAlert, count: low.data?.items.length },
+		...(canReport
+			? [{ id: 'top', label: 'Top products this month', icon: Trophy, count: monthTop.data?.items.length }]
+			: [])
+	]);
 </script>
 
 <svelte:head><title>Dashboard — Saydalah</title></svelte:head>
@@ -193,19 +194,8 @@
 	{/if}
 
 	<!-- Tabbed lists -->
-	<div class="mt-6 flex gap-1 border-b border-surface-2">
-		{#each tabs as t (t.id)}
-			{@const TIcon = t.icon}
-			<button
-				onclick={() => setParams({ tab: t.id })}
-				class="inline-flex items-center gap-1.5 border-b-2 px-4 py-2 text-sm font-medium transition {tab === t.id
-					? 'border-accent text-accent'
-					: 'border-transparent text-muted hover:text-fg'}"
-			>
-				<TIcon size={15} />{t.label}
-				{#if t.count !== undefined}<span class="rounded-full bg-surface-2 px-1.5 text-xs text-muted">{t.count}</span>{/if}
-			</button>
-		{/each}
+	<div class="mt-6">
+		<Tabs {tabs} active={tab} onSelect={(id) => setParams({ tab: id })} />
 	</div>
 
 	<div class="mt-5">
