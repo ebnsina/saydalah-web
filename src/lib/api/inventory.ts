@@ -27,3 +27,17 @@ export function lowStock(branchId: string | null): Promise<{ items: LowStock[] }
 export function onHand(branchId: string | null, productId: string): Promise<OnHand> {
 	return get<OnHand>(`/inventory/on-hand/${productId}${branchQ(branchId)}`);
 }
+
+export interface BranchStock {
+	branch_id: string;
+	branch_name: string;
+	on_hand: number;
+}
+
+export function stockByBranch(productId: string): Promise<{ items: BranchStock[] }> {
+	return get<{ items: BranchStock[] }>(`/inventory/products/${productId}/stock`);
+}
+
+export function productBatches(branchId: string | null, productId: string): Promise<{ items: Batch[] }> {
+	return get<{ items: Batch[] }>(`/inventory/products/${productId}/batches${branchQ(branchId)}`);
+}

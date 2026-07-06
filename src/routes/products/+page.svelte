@@ -243,7 +243,7 @@
 									</span>
 									<div>
 										<div class="flex items-center gap-2">
-											<span class="font-medium text-fg">{p.name}</span>
+											<a href="/products/{p.id}" class="font-medium text-fg transition hover:text-accent hover:underline">{p.name}</a>
 											{#if !p.active}<span class="rounded-full bg-surface-2 px-2 py-0.5 text-[10px] font-medium text-muted">Inactive</span>{/if}
 										</div>
 										{#if p.generic_name}<div class="text-xs text-muted">{p.generic_name}</div>{/if}
