@@ -16,6 +16,15 @@
 	import Combobox from '$lib/components/ui/Combobox.svelte';
 	import CameraScanner from '$lib/components/CameraScanner.svelte';
 	import { getMeta } from '$lib/api/meta';
+	import { listCustomers } from '$lib/api/customers';
+
+	const customers = createQuery(() => ({ queryKey: ['customers', '', 1], queryFn: () => listCustomers({}) }));
+	const customerOptions = $derived([
+		{ value: '', label: 'Walk-in customer' },
+		...(customers.data?.items ?? []).map((c) => ({ value: c.id, label: c.name, sublabel: c.phone || undefined }))
+	]);
+	let customerId = $state('');
+	let onAccount = $state(false);
 
 	const meta = createQuery(() => ({ queryKey: ['meta'], queryFn: getMeta, staleTime: 300_000 }));
 	const taxRate = $derived(meta.data?.tax_rate ?? 0);
@@ -113,6 +122,8 @@
 			receipt = sale;
 			cart = [];
 			discount = 0;
+			customerId = '';
+			onAccount = false;
 			// Stock changed — inventory views are now stale.
 			queryClient.invalidateQueries({ queryKey: ['batches'] });
 			queryClient.invalidateQueries({ queryKey: ['low-stock'] });
@@ -134,7 +145,18 @@
 			saleError = Object.values(result.errors)[0];
 			return;
 		}
-		checkout.mutate({ ...payload, branch_id: branch.id });
+		if (onAccount && !customerId) {
+			saleError = 'Select a customer to charge to account.';
+			return;
+		}
+		checkout.mutate({
+			...payload,
+			branch_id: branch.id,
+			customer_id: customerId || null,
+			// On-account: nothing tendered now (paid 0). Otherwise omit paid so the
+			// API records it as paid in full.
+			...(onAccount ? { paid: 0 } : {})
+		});
 	}
 </script>
 
@@ -346,9 +368,19 @@
 				</ul>
 
 				<label class="mt-1 flex items-center justify-between gap-3 text-sm">
+					<span class="shrink-0 text-muted">Customer</span>
+					<div class="min-w-0 flex-1"><Combobox bind:value={customerId} options={customerOptions} placeholder="Walk-in customer" /></div>
+				</label>
+				<label class="flex items-center justify-between gap-3 text-sm">
 					<span class="text-muted">Payment</span>
 					<div class="w-40"><Combobox bind:value={paymentMethod} search={false} options={paymentOptions} /></div>
 				</label>
+				{#if customerId}
+					<label class="flex items-center justify-between gap-3 text-sm">
+						<span class="text-muted">Charge to account (unpaid)</span>
+						<input type="checkbox" bind:checked={onAccount} class="h-4 w-4 accent-[var(--color-accent)]" />
+					</label>
+				{/if}
 				<label class="flex items-center justify-between text-sm">
 					<span class="text-muted">Discount</span>
 					<input type="number" min="0" bind:value={discount} class="w-24 rounded-full border border-surface-2 bg-surface px-3 py-1.5 text-right font-mono text-fg focus:border-accent focus:outline-none" />

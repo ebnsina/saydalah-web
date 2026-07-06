@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createQuery } from '@tanstack/svelte-query';
 	import { page } from '$app/state';
-	import { ArrowLeft, Phone, MapPin, ShoppingCart, ClipboardList, Printer, CircleCheck, Clock } from '@lucide/svelte';
+	import { ArrowLeft, Phone, MapPin, ShoppingCart, ClipboardList, Printer, CircleCheck, Clock, Wallet } from '@lucide/svelte';
 	import { getCustomer } from '$lib/api/customers';
 	import { listSales } from '$lib/api/sales';
 	import { listPrescriptions } from '$lib/api/prescriptions';
@@ -29,9 +29,9 @@
 		enabled: branchReady
 	}));
 
-	const totalSpent = $derived(
-		(sales.data?.items ?? []).filter((s) => !s.voided_at).reduce((t, s) => t + Number(s.total), 0)
-	);
+	const activeSales = $derived((sales.data?.items ?? []).filter((s) => !s.voided_at));
+	const totalSpent = $derived(activeSales.reduce((t, s) => t + Number(s.total), 0));
+	const outstanding = $derived(activeSales.reduce((t, s) => t + (Number(s.total) - Number(s.paid)), 0));
 </script>
 
 <svelte:head><title>{customer.data?.name ?? 'Customer'} — Saydalah</title></svelte:head>
@@ -64,12 +64,22 @@
 	</div>
 
 	<!-- Summary (current branch) -->
-	<div class="mt-6 grid gap-4 sm:grid-cols-3">
+	<div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 		<StatCard label="Purchases" value={sales.data?.total ?? 0} loading={sales.isPending}>
 			{#snippet icon()}<ShoppingCart size={16} />{/snippet}
 		</StatCard>
 		<StatCard label="Total spent" value={totalSpent} format={fmtMoney} loading={sales.isPending} tone="accent">
 			{#snippet icon()}<ShoppingCart size={16} />{/snippet}
+		</StatCard>
+		<StatCard
+			label="Outstanding"
+			value={outstanding}
+			format={fmtMoney}
+			loading={sales.isPending}
+			tone={outstanding > 0 ? 'danger' : 'success'}
+			hint={outstanding > 0 ? 'owed on account' : 'settled'}
+		>
+			{#snippet icon()}<Wallet size={16} />{/snippet}
 		</StatCard>
 		<StatCard label="Prescriptions" value={prescriptions.data?.total ?? 0} loading={prescriptions.isPending}>
 			{#snippet icon()}<ClipboardList size={16} />{/snippet}
@@ -97,7 +107,13 @@
 								<td class="py-2 text-muted">{fmtDate(s.created_at)}</td>
 								<td class="py-2 text-right font-mono tabular-nums text-fg">{fmtMoney(s.total)}</td>
 								<td class="py-2">
-									{#if s.voided_at}<span class="text-xs text-red-500">Voided</span>{:else}<span class="text-xs text-emerald-600">Paid</span>{/if}
+									{#if s.voided_at}
+										<span class="text-xs text-red-500">Voided</span>
+									{:else if Number(s.total) - Number(s.paid) > 0}
+										<span class="text-xs font-medium text-amber-500">Due {fmtMoney(Number(s.total) - Number(s.paid))}</span>
+									{:else}
+										<span class="text-xs text-emerald-600">Paid</span>
+									{/if}
 								</td>
 								<td class="py-2 text-right">
 									<a href="/invoice/{s.id}" class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs text-muted opacity-0 transition group-hover:opacity-100 hover:bg-surface-2 hover:text-fg"><Printer size={12} /> Invoice</a>
