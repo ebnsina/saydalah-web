@@ -36,8 +36,20 @@
 
 	const tabs = $derived([
 		{ id: 'batches', label: 'In-stock batches', icon: Boxes, count: batches.data?.total },
-		{ id: 'low', label: 'Low stock', icon: TriangleAlert, count: low.data?.items.length },
-		{ id: 'expiring', label: 'Expiring ≤ 60d', icon: Clock, count: expiring.data?.items.length }
+		{
+			id: 'low',
+			label: 'Low stock',
+			icon: TriangleAlert,
+			count: low.data?.items.length,
+			tone: (low.data?.items.length ? 'danger' : 'success') as 'danger' | 'success'
+		},
+		{
+			id: 'expiring',
+			label: 'Expiring ≤ 60d',
+			icon: Clock,
+			count: expiring.data?.items.length,
+			tone: (expiring.data?.items.length ? 'warn' : 'success') as 'warn' | 'success'
+		}
 	]);
 
 	function expiryTone(iso: string): string {

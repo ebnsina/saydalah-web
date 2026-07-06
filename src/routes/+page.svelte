@@ -95,7 +95,13 @@
 	}));
 
 	const tabs = $derived([
-		{ id: 'reorder', label: 'Needs reordering', icon: TriangleAlert, count: low.data?.items.length },
+		{
+			id: 'reorder',
+			label: 'Needs reordering',
+			icon: TriangleAlert,
+			count: low.data?.items.length,
+			tone: (low.data?.items.length ? 'danger' : 'success') as 'danger' | 'success'
+		},
 		...(canReport
 			? [{ id: 'top', label: 'Top products this month', icon: Trophy, count: monthTop.data?.items.length }]
 			: [])
