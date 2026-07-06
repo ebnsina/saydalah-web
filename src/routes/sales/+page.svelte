@@ -270,14 +270,20 @@
 			{#if Number(receipt.tax) > 0}<div class="flex justify-between"><dt class="text-muted">Tax</dt><dd class="font-mono text-fg-soft">{fmtMoney(receipt.tax)}</dd></div>{/if}
 			<div class="flex justify-between text-base font-semibold"><dt class="text-fg">Total</dt><dd class="font-mono text-fg">{fmtMoney(receipt.total)}</dd></div>
 		</dl>
-		<div class="mt-5 flex gap-2">
+		<div class="mt-5 grid grid-cols-2 gap-2">
+			<a
+				href="/receipt/{receipt.id}"
+				class="inline-flex items-center justify-center gap-1.5 rounded-full border border-surface-2 px-3 py-2 text-sm font-medium text-fg-soft transition hover:bg-surface-2"
+			>
+				<Printer size={15} /> Receipt
+			</a>
 			<a
 				href="/invoice/{receipt.id}"
-				class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border border-surface-2 px-4 py-2 text-sm font-medium text-fg-soft transition hover:bg-surface-2"
+				class="inline-flex items-center justify-center gap-1.5 rounded-full border border-surface-2 px-3 py-2 text-sm font-medium text-fg-soft transition hover:bg-surface-2"
 			>
 				<Printer size={15} /> Invoice
 			</a>
-			<Button class="flex-1" onclick={() => (receipt = null)}>New sale</Button>
+			<Button class="col-span-2" onclick={() => (receipt = null)}>New sale</Button>
 		</div>
 	</div>
 {:else}
