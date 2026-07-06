@@ -28,9 +28,11 @@
 		mobileOpen = false;
 	});
 
-	// Bare pages (no sidebar/topbar): login, and printable invoices.
+	// Bare pages (no sidebar/topbar): login, and printable docs.
 	const bare = $derived(
-		page.url.pathname === '/login' || page.url.pathname.startsWith('/invoice/')
+		page.url.pathname === '/login' ||
+			page.url.pathname.startsWith('/invoice/') ||
+			page.url.pathname.startsWith('/prescription-print/')
 	);
 	const showChrome = $derived(isAuthenticated() && !bare);
 </script>

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
 	import { page } from '$app/state';
-	import { ArrowLeft, CircleCheck, Clock, User, Stethoscope, PillBottle } from '@lucide/svelte';
+	import { ArrowLeft, CircleCheck, Clock, User, Stethoscope, PillBottle, Printer } from '@lucide/svelte';
 	import { getPrescription, dispensePrescription } from '$lib/api/prescriptions';
 	import { getCustomer } from '$lib/api/customers';
 	import { listProducts } from '$lib/api/products';
@@ -75,6 +75,12 @@
 			</div>
 			<p class="mt-1 font-mono text-xs text-muted">#{p.id.slice(0, 8).toUpperCase()} · {fmtLongDate(new Date(p.created_at))}</p>
 		</div>
+		<a
+			href="/prescription-print/{p.id}"
+			class="inline-flex items-center gap-1.5 rounded-full border border-surface-2 px-4 py-2 text-sm font-medium text-fg-soft transition hover:bg-surface-2"
+		>
+			<Printer size={15} /> Print
+		</a>
 	</div>
 
 	<div class="mt-6 grid gap-4 sm:grid-cols-2">
