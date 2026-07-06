@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
-	import { Plus, Trash2, PillBottle } from '@lucide/svelte';
+	import { Plus, Trash2, PillBottle, CircleCheck, Clock } from '@lucide/svelte';
 	import {
 		listPrescriptions,
 		createPrescription,
@@ -133,9 +133,9 @@
 							<td class="px-4 py-2.5 text-muted">{fmtDate(p.created_at)}</td>
 							<td class="px-4 py-2.5">
 								{#if p.dispensed_at}
-									<span class="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-500">Dispensed</span>
+									<span class="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-500"><CircleCheck size={12} />Dispensed</span>
 								{:else}
-									<span class="rounded-full bg-accent/10 px-2.5 py-0.5 text-xs font-medium text-accent">Pending</span>
+									<span class="inline-flex items-center gap-1 rounded-full bg-accent/10 px-2.5 py-0.5 text-xs font-medium text-accent"><Clock size={12} />Pending</span>
 								{/if}
 							</td>
 							<td class="px-4 py-2.5 text-right">

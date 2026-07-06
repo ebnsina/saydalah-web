@@ -172,9 +172,9 @@
 								<td class="px-4 py-2.5 text-right font-mono tabular-nums text-fg">{fmtMoney(s.total)}</td>
 								<td class="px-4 py-2.5">
 									{#if s.voided_at}
-										<span class="rounded-full bg-red-500/10 px-2.5 py-0.5 text-xs font-medium text-red-500">Voided</span>
+										<span class="inline-flex items-center gap-1 rounded-full bg-red-500/10 px-2.5 py-0.5 text-xs font-medium text-red-500"><Ban size={12} />Voided</span>
 									{:else}
-										<span class="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-500">Completed</span>
+										<span class="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-500"><Check size={12} />Completed</span>
 									{/if}
 								</td>
 								<td class="px-4 py-2.5 text-right">

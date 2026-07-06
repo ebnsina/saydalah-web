@@ -7,6 +7,7 @@
 	import { salesSummary, topProducts, inventoryValuation } from '$lib/api/reports';
 	import { branch } from '$lib/stores/branch.svelte';
 	import { fmtLongDate, todayParam, monthStartParam, fmtMoney } from '$lib/format';
+	import { productIcon } from '$lib/productIcon';
 	import BranchSelect from '$lib/components/BranchSelect.svelte';
 	import StatCard from '$lib/components/ui/StatCard.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
@@ -188,8 +189,10 @@
 			{:else if low.data && low.data.items.length > 0}
 				<ul class="divide-y divide-surface-2 text-sm">
 					{#each low.data.items.slice(0, 6) as item (item.product_id)}
+						{@const fi = productIcon(item.product_form)}
+						{@const Icon = fi.icon}
 						<li class="flex items-center justify-between py-2">
-							<span class="text-fg">{item.product_name}</span>
+							<span class="flex items-center gap-2.5 text-fg"><Icon size={16} class={fi.tint} />{item.product_name}</span>
 							<span class="text-muted"><span class="font-medium text-red-500">{item.on_hand}</span> / {item.reorder_level}</span>
 						</li>
 					{/each}

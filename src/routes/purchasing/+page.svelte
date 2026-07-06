@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
-	import { Plus, Trash2, PackageCheck } from '@lucide/svelte';
+	import { Plus, Trash2, PackageCheck, FileText, Truck, Ban } from '@lucide/svelte';
 	import { listOrders, createOrder, receiveOrder, type ReceiveLine } from '$lib/api/purchasing';
 	import { listSuppliers } from '$lib/api/suppliers';
 	import { listProducts } from '$lib/api/products';
@@ -40,6 +40,7 @@
 		received: 'bg-emerald-500/10 text-emerald-500',
 		cancelled: 'bg-red-500/10 text-red-500'
 	};
+	const statusIcon = { draft: FileText, ordered: Truck, received: PackageCheck, cancelled: Ban };
 
 	// --- create order ---
 	let showCreate = $state(false);
@@ -155,11 +156,14 @@
 				</thead>
 				<tbody class="divide-y divide-surface-2">
 					{#each orders.data.items as po (po.id)}
+						{@const SIcon = statusIcon[po.status]}
 						<tr class="hover:bg-surface-2/30">
 							<td class="px-4 py-2.5 font-mono text-xs text-fg-soft">{po.reference || po.id.slice(0, 8)}</td>
 							<td class="px-4 py-2.5 text-fg">{supplierName(po.supplier_id)}</td>
 							<td class="px-4 py-2.5">
-								<span class="rounded-full px-2.5 py-0.5 text-xs font-medium capitalize {statusTone[po.status]}">{po.status}</span>
+								<span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium capitalize {statusTone[po.status]}">
+									<SIcon size={12} />{po.status}
+								</span>
 							</td>
 							<td class="px-4 py-2.5 text-right tabular-nums text-fg-soft">{po.items?.length ?? 0}</td>
 							<td class="px-4 py-2.5 text-muted">{po.ordered_at ? fmtDate(po.ordered_at) : '—'}</td>
