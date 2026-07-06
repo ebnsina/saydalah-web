@@ -35,6 +35,48 @@ export const saleSchema = z.object({
 		.min(1, 'Add at least one product to the cart')
 });
 
+const optionalEmail = z.union([z.literal(''), z.email('Enter a valid email address')]);
+
+export const branchSchema = z.object({
+	name: z.string().trim().min(2, 'Branch name is required'),
+	address: z.string().max(200),
+	phone: z.string().max(40)
+});
+
+export const supplierSchema = z.object({
+	name: z.string().trim().min(2, 'Supplier name is required'),
+	contact: z.string().max(120),
+	phone: z.string().max(40),
+	email: optionalEmail
+});
+
+export const customerSchema = z.object({
+	name: z.string().trim().min(2, 'Customer name is required'),
+	phone: z.string().max(40),
+	address: z.string().max(200)
+});
+
+const roleEnum = z.enum(['admin', 'manager', 'pharmacist', 'cashier']);
+const branchRequiredUnlessAdmin = { message: 'Select a branch', path: ['branch_id'] };
+
+export const userCreateSchema = z
+	.object({
+		full_name: z.string().trim().min(2, 'Full name is required'),
+		email: z.email('Enter a valid email address'),
+		password: z.string().min(8, 'Password must be at least 8 characters'),
+		role: roleEnum,
+		branch_id: z.string()
+	})
+	.refine((d) => d.role === 'admin' || d.branch_id !== '', branchRequiredUnlessAdmin);
+
+export const userEditSchema = z
+	.object({
+		full_name: z.string().trim().min(2, 'Full name is required'),
+		role: roleEnum,
+		branch_id: z.string()
+	})
+	.refine((d) => d.role === 'admin' || d.branch_id !== '', branchRequiredUnlessAdmin);
+
 export const productSchema = z.object({
 	name: z.string().trim().min(2, 'Name must be at least 2 characters'),
 	generic_name: z.string().max(160),

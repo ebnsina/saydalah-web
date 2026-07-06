@@ -6,10 +6,18 @@
 	import { listUsers, createUser, updateUser } from '$lib/api/users';
 	import type { Branch, Supplier, User, Role } from '$lib/types';
 	import { urlParam, setParams } from '$lib/url';
+	import {
+		validate,
+		branchSchema,
+		supplierSchema,
+		userCreateSchema,
+		userEditSchema
+	} from '$lib/validation';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
 	import TextInput from '$lib/components/ui/TextInput.svelte';
+	import Combobox from '$lib/components/ui/Combobox.svelte';
 	import Spinner from '$lib/components/states/Spinner.svelte';
 	import ErrorState from '$lib/components/states/ErrorState.svelte';
 	import TableSkeleton from '$lib/components/states/TableSkeleton.svelte';
@@ -26,12 +34,20 @@
 	const suppliers = createQuery(() => ({ queryKey: ['suppliers'], queryFn: listSuppliers }));
 	const users = createQuery(() => ({ queryKey: ['users'], queryFn: () => listUsers(1) }));
 
-	const field =
-		'rounded-full border border-surface-2 bg-surface px-4 py-2 text-sm text-fg focus:border-accent focus:outline-none';
-
 	let open = $state(false);
 	let editingId = $state<string | null>(null);
 	let error = $state<string | null>(null);
+	let fieldErrors = $state<Record<string, string>>({});
+
+	const roleOptions = [
+		{ value: 'cashier', label: 'Cashier' },
+		{ value: 'pharmacist', label: 'Pharmacist' },
+		{ value: 'manager', label: 'Manager' },
+		{ value: 'admin', label: 'Admin' }
+	];
+	const branchOptions = $derived(
+		(branches.data?.items ?? []).map((b) => ({ value: b.id, label: b.name }))
+	);
 
 	let bForm = $state({ name: '', address: '', phone: '', active: true });
 	let sForm = $state({ name: '', contact: '', phone: '', email: '', active: true });
@@ -47,6 +63,7 @@
 	function openCreate() {
 		editingId = null;
 		error = null;
+		fieldErrors = {};
 		bForm = { name: '', address: '', phone: '', active: true };
 		sForm = { name: '', contact: '', phone: '', email: '', active: true };
 		uForm = { email: '', password: '', full_name: '', role: 'cashier', branch_id: '', active: true };
@@ -55,18 +72,21 @@
 	function editBranch(b: Branch) {
 		editingId = b.id;
 		error = null;
+		fieldErrors = {};
 		bForm = { name: b.name, address: b.address, phone: b.phone, active: b.active };
 		open = true;
 	}
 	function editSupplier(s: Supplier) {
 		editingId = s.id;
 		error = null;
+		fieldErrors = {};
 		sForm = { name: s.name, contact: s.contact, phone: s.phone, email: s.email, active: s.active };
 		open = true;
 	}
 	function editUser(u: User) {
 		editingId = u.id;
 		error = null;
+		fieldErrors = {};
 		uForm = { email: u.email, password: '', full_name: u.full_name, role: u.role, branch_id: u.branch_id ?? '', active: u.active ?? true };
 		open = true;
 	}
@@ -96,6 +116,16 @@
 
 	function submit() {
 		error = null;
+		fieldErrors = {};
+		let result;
+		if (tab === 'branches') result = validate(branchSchema, bForm);
+		else if (tab === 'suppliers') result = validate(supplierSchema, sForm);
+		else result = validate(editingId ? userEditSchema : userCreateSchema, uForm);
+
+		if (result.errors) {
+			fieldErrors = result.errors;
+			return;
+		}
 		if (tab === 'branches') bMut.mutate({ id: editingId });
 		else if (tab === 'suppliers') sMut.mutate({ id: editingId });
 		else uMut.mutate({ id: editingId });
@@ -165,39 +195,32 @@
 <Modal bind:open title={(editingId ? 'Edit ' : 'New ') + tab.slice(0, -1)}>
 	<form onsubmit={(e) => { e.preventDefault(); submit(); }} class="flex flex-col gap-3">
 		{#if tab === 'branches'}
-			<TextInput label="Name" bind:value={bForm.name} />
-			<TextInput label="Address" bind:value={bForm.address} />
-			<TextInput label="Phone" bind:value={bForm.phone} />
+			<TextInput label="Name" placeholder="Saydalah Downtown" bind:value={bForm.name} error={fieldErrors.name} />
+			<TextInput label="Address" placeholder="Street, city" bind:value={bForm.address} error={fieldErrors.address} />
+			<TextInput label="Phone" placeholder="+880…" bind:value={bForm.phone} error={fieldErrors.phone} />
 			{#if editingId}<label class="flex items-center gap-2 text-sm text-fg-soft"><input type="checkbox" bind:checked={bForm.active} class="h-4 w-4 accent-[var(--color-accent)]" /> Active</label>{/if}
 		{:else if tab === 'suppliers'}
-			<TextInput label="Name" bind:value={sForm.name} />
-			<TextInput label="Contact" bind:value={sForm.contact} />
-			<TextInput label="Phone" bind:value={sForm.phone} />
-			<TextInput label="Email" type="email" bind:value={sForm.email} />
+			<TextInput label="Name" placeholder="Acme Pharma Ltd." bind:value={sForm.name} error={fieldErrors.name} />
+			<TextInput label="Contact" placeholder="Contact person" bind:value={sForm.contact} error={fieldErrors.contact} />
+			<TextInput label="Phone" placeholder="+880…" bind:value={sForm.phone} error={fieldErrors.phone} />
+			<TextInput label="Email" type="email" placeholder="orders@supplier.com" bind:value={sForm.email} error={fieldErrors.email} />
 			{#if editingId}<label class="flex items-center gap-2 text-sm text-fg-soft"><input type="checkbox" bind:checked={sForm.active} class="h-4 w-4 accent-[var(--color-accent)]" /> Active</label>{/if}
 		{:else}
-			<TextInput label="Full name" bind:value={uForm.full_name} />
+			<TextInput label="Full name" placeholder="Jane Doe" bind:value={uForm.full_name} error={fieldErrors.full_name} />
 			{#if !editingId}
-				<TextInput label="Email" type="email" bind:value={uForm.email} />
-				<TextInput label="Password" type="password" bind:value={uForm.password} />
+				<TextInput label="Email" type="email" placeholder="jane@saydalah.test" bind:value={uForm.email} error={fieldErrors.email} />
+				<TextInput label="Password" type="password" placeholder="At least 8 characters" bind:value={uForm.password} error={fieldErrors.password} />
 			{/if}
-			<label class="flex flex-col gap-1 text-sm">
+			<div class="flex flex-col gap-1 text-sm">
 				<span class="font-medium text-fg-soft">Role</span>
-				<select bind:value={uForm.role} class={field}>
-					<option value="cashier">Cashier</option>
-					<option value="pharmacist">Pharmacist</option>
-					<option value="manager">Manager</option>
-					<option value="admin">Admin</option>
-				</select>
-			</label>
+				<Combobox value={uForm.role} search={false} options={roleOptions} onchange={(v) => (uForm.role = v as Role)} />
+			</div>
 			{#if uForm.role !== 'admin'}
-				<label class="flex flex-col gap-1 text-sm">
+				<div class="flex flex-col gap-1 text-sm">
 					<span class="font-medium text-fg-soft">Branch</span>
-					<select bind:value={uForm.branch_id} class={field}>
-						<option value="" disabled>Choose a branch…</option>
-						{#each branches.data?.items ?? [] as b (b.id)}<option value={b.id}>{b.name}</option>{/each}
-					</select>
-				</label>
+					<Combobox bind:value={uForm.branch_id} options={branchOptions} placeholder="Choose a branch…" />
+					{#if fieldErrors.branch_id}<span class="text-xs text-red-500">{fieldErrors.branch_id}</span>{/if}
+				</div>
 			{/if}
 			{#if editingId}<label class="flex items-center gap-2 text-sm text-fg-soft"><input type="checkbox" bind:checked={uForm.active} class="h-4 w-4 accent-[var(--color-accent)]" /> Active</label>{/if}
 		{/if}

@@ -4,6 +4,7 @@
 	import { listCustomers, createCustomer, updateCustomer } from '$lib/api/customers';
 	import type { Customer } from '$lib/types';
 	import { urlParam, setParams } from '$lib/url';
+	import { validate, customerSchema } from '$lib/validation';
 	import { fmtDate } from '$lib/format';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -38,17 +39,20 @@
 	let editingId = $state<string | null>(null);
 	let form = $state({ name: '', phone: '', address: '' });
 	let formError = $state<string | null>(null);
+	let fieldErrors = $state<Record<string, string>>({});
 
 	function openCreate() {
 		editingId = null;
 		form = { name: '', phone: '', address: '' };
 		formError = null;
+		fieldErrors = {};
 		showForm = true;
 	}
 	function openEdit(c: Customer) {
 		editingId = c.id;
 		form = { name: c.name, phone: c.phone, address: c.address };
 		formError = null;
+		fieldErrors = {};
 		showForm = true;
 	}
 
@@ -65,7 +69,12 @@
 	function submit(e: SubmitEvent) {
 		e.preventDefault();
 		formError = null;
-		if (form.name.trim().length < 2) return (formError = 'Name is required');
+		const result = validate(customerSchema, form);
+		if (result.errors) {
+			fieldErrors = result.errors;
+			return;
+		}
+		fieldErrors = {};
 		save.mutate({ id: editingId, input: form });
 	}
 </script>
@@ -80,9 +89,9 @@
 
 <Modal bind:open={showForm} title={editingId ? 'Edit customer' : 'New customer'}>
 	<form onsubmit={submit} class="flex flex-col gap-3">
-		<TextInput label="Name" bind:value={form.name} />
-		<TextInput label="Phone" bind:value={form.phone} />
-		<TextInput label="Address" bind:value={form.address} />
+		<TextInput label="Name" placeholder="Customer name" bind:value={form.name} error={fieldErrors.name} />
+		<TextInput label="Phone" placeholder="+880…" bind:value={form.phone} error={fieldErrors.phone} />
+		<TextInput label="Address" placeholder="Street, city" bind:value={form.address} error={fieldErrors.address} />
 		{#if formError}<p class="text-sm text-red-500">{formError}</p>{/if}
 		<div class="mt-1 flex justify-end gap-2">
 			<Button variant="secondary" onclick={() => (showForm = false)}>Cancel</Button>

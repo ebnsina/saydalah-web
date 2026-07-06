@@ -8,10 +8,18 @@
 	import { urlParam, setParams } from '$lib/url';
 	import { validate, saleSchema } from '$lib/validation';
 	import { productIcon } from '$lib/productIcon';
+	import { Banknote, CreditCard, Smartphone } from '@lucide/svelte';
 	import type { Product, Sale, PaymentMethod } from '$lib/types';
 	import BranchSelect from '$lib/components/BranchSelect.svelte';
 	import SearchInput from '$lib/components/ui/SearchInput.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
+	import Combobox from '$lib/components/ui/Combobox.svelte';
+
+	const paymentOptions = [
+		{ value: 'cash', label: 'Cash', icon: Banknote, tint: 'text-emerald-500' },
+		{ value: 'card', label: 'Card', icon: CreditCard, tint: 'text-indigo-500' },
+		{ value: 'mobile', label: 'Mobile', icon: Smartphone, tint: 'text-sky-500' }
+	];
 	import TableSkeleton from '$lib/components/states/TableSkeleton.svelte';
 	import ErrorState from '$lib/components/states/ErrorState.svelte';
 	import EmptyState from '$lib/components/states/EmptyState.svelte';
@@ -41,7 +49,7 @@
 	let barcodeError = $state<string | null>(null);
 	let search = $state('');
 	let debounced = $state('');
-	let paymentMethod = $state<PaymentMethod>('cash');
+	let paymentMethod = $state('cash');
 	let discount = $state(0);
 	let saleError = $state<string | null>(null);
 	let receipt = $state<Sale | null>(null);
@@ -104,7 +112,7 @@
 	function submit() {
 		saleError = null;
 		const payload = {
-			payment_method: paymentMethod,
+			payment_method: paymentMethod as PaymentMethod,
 			discount,
 			lines: cart.map((l) => ({ product_id: l.product.id, qty: l.qty }))
 		};
@@ -294,13 +302,9 @@
 					{/each}
 				</ul>
 
-				<label class="mt-1 flex items-center justify-between text-sm">
+				<label class="mt-1 flex items-center justify-between gap-3 text-sm">
 					<span class="text-muted">Payment</span>
-					<select bind:value={paymentMethod} class="rounded-full border border-surface-2 bg-surface px-3 py-1.5 text-fg focus:border-accent focus:outline-none">
-						<option value="cash">Cash</option>
-						<option value="card">Card</option>
-						<option value="mobile">Mobile</option>
-					</select>
+					<div class="w-40"><Combobox bind:value={paymentMethod} search={false} options={paymentOptions} /></div>
 				</label>
 				<label class="flex items-center justify-between text-sm">
 					<span class="text-muted">Discount</span>

@@ -14,12 +14,16 @@
 		options,
 		value = $bindable(''),
 		placeholder = 'Select…',
-		disabled = false
+		disabled = false,
+		search = true,
+		onchange
 	}: {
 		options: Option[];
 		value?: string;
 		placeholder?: string;
 		disabled?: boolean;
+		search?: boolean;
+		onchange?: (value: string) => void;
 	} = $props();
 
 	let open = $state(false);
@@ -39,6 +43,7 @@
 		value = v;
 		open = false;
 		query = '';
+		onchange?.(v);
 	}
 
 	function toggle() {
@@ -90,16 +95,18 @@
 		<div
 			class="absolute z-20 mt-1 w-full overflow-hidden rounded-2xl border border-surface-2 bg-surface shadow-lg"
 		>
-			<div class="flex items-center gap-2 border-b border-surface-2 px-3 py-2">
-				<Search size={14} class="text-muted" />
-				<!-- svelte-ignore a11y_autofocus -->
-				<input
-					autofocus
-					bind:value={query}
-					placeholder="Search…"
-					class="w-full bg-transparent text-sm text-fg placeholder:text-muted focus:outline-none"
-				/>
-			</div>
+			{#if search}
+				<div class="flex items-center gap-2 border-b border-surface-2 px-3 py-2">
+					<Search size={14} class="text-muted" />
+					<!-- svelte-ignore a11y_autofocus -->
+					<input
+						autofocus
+						bind:value={query}
+						placeholder="Search…"
+						class="w-full bg-transparent text-sm text-fg placeholder:text-muted focus:outline-none"
+					/>
+				</div>
+			{/if}
 			<ul class="max-h-56 overflow-y-auto py-1">
 				{#each filtered as o (o.value)}
 					<li>

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
-	import { Plus, Trash2, PillBottle, CircleCheck, Clock } from '@lucide/svelte';
+	import { Plus, Trash2, PillBottle, CircleCheck, Clock, Banknote, CreditCard, Smartphone } from '@lucide/svelte';
 	import {
 		listPrescriptions,
 		createPrescription,
@@ -50,6 +50,12 @@
 	const field =
 		'rounded-full border border-surface-2 bg-surface px-3 py-1.5 text-sm text-fg focus:border-accent focus:outline-none';
 
+	const paymentOptions = [
+		{ value: 'cash', label: 'Cash', icon: Banknote, tint: 'text-emerald-500' },
+		{ value: 'card', label: 'Card', icon: CreditCard, tint: 'text-indigo-500' },
+		{ value: 'mobile', label: 'Mobile', icon: Smartphone, tint: 'text-sky-500' }
+	];
+
 	// --- create ---
 	let showCreate = $state(false);
 	let customerId = $state('');
@@ -83,7 +89,7 @@
 	// --- dispense ---
 	let dispenseOpen = $state(false);
 	let dispensing = $state<Prescription | null>(null);
-	let paymentMethod = $state<PaymentMethod>('cash');
+	let paymentMethod = $state('cash');
 	let dispenseError = $state<string | null>(null);
 
 	function openDispense(p: Prescription) {
@@ -210,16 +216,12 @@
 			<p class="text-sm text-muted">Fill {(dispensing.items?.length ?? 0)} item(s) for {customerName(dispensing.customer_id)}. Stock is drawn FEFO.</p>
 			<label class="flex items-center justify-between text-sm">
 				<span class="text-muted">Payment</span>
-				<select bind:value={paymentMethod} class={field}>
-					<option value="cash">Cash</option>
-					<option value="card">Card</option>
-					<option value="mobile">Mobile</option>
-				</select>
+				<div class="w-40"><Combobox bind:value={paymentMethod} search={false} options={paymentOptions} /></div>
 			</label>
 			{#if dispenseError}<p class="text-sm text-red-500">{dispenseError}</p>{/if}
 			<div class="mt-1 flex justify-end gap-2">
 				<Button variant="secondary" onclick={() => (dispenseOpen = false)}>Cancel</Button>
-				<Button onclick={() => dispensing && dispense.mutate({ id: dispensing.id, payment_method: paymentMethod })} disabled={dispense.isPending}>
+				<Button onclick={() => dispensing && dispense.mutate({ id: dispensing.id, payment_method: paymentMethod as PaymentMethod })} disabled={dispense.isPending}>
 					{dispense.isPending ? 'Dispensing…' : 'Dispense'}
 				</Button>
 			</div>

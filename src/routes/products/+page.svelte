@@ -21,6 +21,7 @@
 	import SearchInput from '$lib/components/ui/SearchInput.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Modal from '$lib/components/ui/Modal.svelte';
+	import Combobox from '$lib/components/ui/Combobox.svelte';
 
 	const queryClient = useQueryClient();
 
@@ -121,8 +122,15 @@
 		setParams({ q: null, category: null, active: null, page: null });
 	}
 
-	const filterSelect =
-		'rounded-full border border-surface-2 bg-surface px-4 py-2 text-sm text-fg focus:border-accent focus:outline-none';
+	const categoryOptions = $derived([
+		{ value: '', label: 'All categories' },
+		...(categories.data?.items ?? []).map((c) => ({ value: c, label: c }))
+	]);
+	const statusOptions = [
+		{ value: '', label: 'Any status' },
+		{ value: 'true', label: 'Active' },
+		{ value: 'false', label: 'Inactive' }
+	];
 </script>
 
 <svelte:head><title>Products — Saydalah</title></svelte:head>
@@ -175,23 +183,21 @@
 	<div class="min-w-56 flex-1">
 		<SearchInput bind:value={searchInput} placeholder="Search by name, generic, or barcode…" />
 	</div>
-	<select
-		value={category}
-		onchange={(e) => setParams({ category: e.currentTarget.value || null, page: null })}
-		class={filterSelect}
-	>
-		<option value="">All categories</option>
-		{#each categories.data?.items ?? [] as c (c)}<option value={c}>{c}</option>{/each}
-	</select>
-	<select
-		value={active}
-		onchange={(e) => setParams({ active: e.currentTarget.value || null, page: null })}
-		class={filterSelect}
-	>
-		<option value="">Any status</option>
-		<option value="true">Active</option>
-		<option value="false">Inactive</option>
-	</select>
+	<div class="w-48">
+		<Combobox
+			value={category}
+			options={categoryOptions}
+			onchange={(v) => setParams({ category: v || null, page: null })}
+		/>
+	</div>
+	<div class="w-40">
+		<Combobox
+			value={active}
+			search={false}
+			options={statusOptions}
+			onchange={(v) => setParams({ active: v || null, page: null })}
+		/>
+	</div>
 	{#if hasFilters}
 		<button
 			onclick={clearFilters}
