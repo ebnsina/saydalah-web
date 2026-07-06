@@ -61,6 +61,33 @@
 
 	const th = 'px-4 py-2.5 font-medium';
 	const td = 'px-4 py-2.5';
+
+	// Client-side sorting (these tabs load the full list, so sorting is accurate).
+	let lowSort = $state<{ k: 'name' | 'on_hand' | 'short'; d: 1 | -1 }>({ k: 'short', d: -1 });
+	let expSort = $state<{ k: 'name' | 'expiry'; d: 1 | -1 }>({ k: 'expiry', d: 1 });
+	function toggle<T extends { k: string; d: 1 | -1 }>(s: T, k: T['k']): T {
+		return { ...s, k, d: s.k === k ? ((s.d * -1) as 1 | -1) : 1 };
+	}
+	const lowSorted = $derived(
+		[...(low.data?.items ?? [])].sort((a, b) => {
+			const v =
+				lowSort.k === 'name'
+					? a.product_name.localeCompare(b.product_name)
+					: lowSort.k === 'on_hand'
+						? a.on_hand - b.on_hand
+						: a.reorder_level - a.on_hand - (b.reorder_level - b.on_hand);
+			return v * lowSort.d;
+		})
+	);
+	const expSorted = $derived(
+		[...(expiring.data?.items ?? [])].sort((a, b) => {
+			const v =
+				expSort.k === 'name'
+					? a.product_name.localeCompare(b.product_name)
+					: a.expiry_date.localeCompare(b.expiry_date);
+			return v * expSort.d;
+		})
+	);
 </script>
 
 <svelte:head><title>Inventory — Saydalah</title></svelte:head>
@@ -89,10 +116,15 @@
 			<div class="overflow-x-auto rounded-2xl border border-surface-2">
 				<table class="w-full text-sm">
 					<thead class="bg-surface-2/50 text-left text-xs tracking-wide text-muted uppercase">
-						<tr><th class={th}>Product</th><th class="{th} text-right">On hand</th><th class="{th} text-right">Reorder level</th><th class="{th} text-right">Short by</th></tr>
+						<tr>
+							<th class={th}><button onclick={() => (lowSort = toggle(lowSort, 'name'))} class="uppercase transition hover:text-fg">Product{lowSort.k === 'name' ? (lowSort.d === 1 ? ' ↑' : ' ↓') : ''}</button></th>
+							<th class="{th} text-right"><button onclick={() => (lowSort = toggle(lowSort, 'on_hand'))} class="uppercase transition hover:text-fg">On hand{lowSort.k === 'on_hand' ? (lowSort.d === 1 ? ' ↑' : ' ↓') : ''}</button></th>
+							<th class="{th} text-right">Reorder level</th>
+							<th class="{th} text-right"><button onclick={() => (lowSort = toggle(lowSort, 'short'))} class="uppercase transition hover:text-fg">Short by{lowSort.k === 'short' ? (lowSort.d === 1 ? ' ↑' : ' ↓') : ''}</button></th>
+						</tr>
 					</thead>
 					<tbody class="divide-y divide-surface-2">
-						{#each low.data.items as item (item.product_id)}
+						{#each lowSorted as item (item.product_id)}
 							{@const fi = productIcon(item.product_form)}
 							{@const Icon = fi.icon}
 							<tr class="hover:bg-surface-2/30">
@@ -118,10 +150,15 @@
 			<div class="overflow-x-auto rounded-2xl border border-surface-2">
 				<table class="w-full text-sm">
 					<thead class="bg-surface-2/50 text-left text-xs tracking-wide text-muted uppercase">
-						<tr><th class={th}>Product</th><th class={th}>Batch</th><th class="{th} text-right">Qty</th><th class="{th} text-right">Expiry</th></tr>
+						<tr>
+							<th class={th}><button onclick={() => (expSort = toggle(expSort, 'name'))} class="uppercase transition hover:text-fg">Product{expSort.k === 'name' ? (expSort.d === 1 ? ' ↑' : ' ↓') : ''}</button></th>
+							<th class={th}>Batch</th>
+							<th class="{th} text-right">Qty</th>
+							<th class="{th} text-right"><button onclick={() => (expSort = toggle(expSort, 'expiry'))} class="uppercase transition hover:text-fg">Expiry{expSort.k === 'expiry' ? (expSort.d === 1 ? ' ↑' : ' ↓') : ''}</button></th>
+						</tr>
 					</thead>
 					<tbody class="divide-y divide-surface-2">
-						{#each expiring.data.items as b (b.id)}
+						{#each expSorted as b (b.id)}
 							{@const fi = productIcon(b.product_form)}
 							{@const Icon = fi.icon}
 							<tr class="hover:bg-surface-2/30">
