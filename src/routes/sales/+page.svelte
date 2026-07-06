@@ -90,7 +90,9 @@
 			addToCart(await getProductByBarcode(code));
 			barcode = '';
 		} catch (err) {
-			barcodeError = err instanceof Error ? err.message : String(err);
+			const msg = err instanceof Error ? err.message : String(err);
+			// The expected failure is an unmatched code — say so plainly.
+			barcodeError = /not found/i.test(msg) ? `No product found for barcode “${code}”.` : msg;
 		}
 	}
 
@@ -235,8 +237,12 @@
 			<form onsubmit={scanBarcode}>
 				<div class="flex items-center gap-2 rounded-full border border-surface-2 bg-surface py-2 pr-2 pl-5 focus-within:border-accent focus-within:ring-4 focus-within:ring-accent/15">
 					<ScanLine size={18} class="shrink-0 text-muted" />
+					<!-- svelte-ignore a11y_autofocus -->
 					<input
 						bind:value={barcode}
+						autofocus
+						inputmode="numeric"
+						autocomplete="off"
 						placeholder="Scan or type a barcode, then Enter"
 						class="w-full bg-transparent font-mono text-sm text-fg placeholder:text-muted focus:outline-none"
 					/>
