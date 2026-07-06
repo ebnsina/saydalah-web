@@ -32,7 +32,8 @@
 	const bare = $derived(
 		page.url.pathname === '/login' ||
 			page.url.pathname.startsWith('/invoice/') ||
-			page.url.pathname.startsWith('/prescription-print/')
+			page.url.pathname.startsWith('/prescription-print/') ||
+			page.url.pathname.startsWith('/day-end/')
 	);
 	const showChrome = $derived(isAuthenticated() && !bare);
 </script>

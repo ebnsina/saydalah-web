@@ -6,8 +6,10 @@ export interface SalesSummary {
 	from: string;
 	to: string;
 	sale_count: number;
-	revenue: string;
+	subtotal_total: string;
 	discount_total: string;
+	tax_total: string;
+	revenue: string;
 }
 
 export interface TopProduct {

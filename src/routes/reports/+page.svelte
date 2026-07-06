@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createQuery } from '@tanstack/svelte-query';
-	import { ShoppingCart, Banknote, Tag, Boxes, Download, CreditCard, Smartphone } from '@lucide/svelte';
+	import { ShoppingCart, Banknote, Tag, Boxes, Download, CreditCard, Smartphone, FileText } from '@lucide/svelte';
 	import {
 		salesSummary,
 		topProducts,
@@ -85,7 +85,15 @@
 <svelte:head><title>Reports — Saydalah</title></svelte:head>
 
 <PageHeader title="Reports" subtitle="Sales performance and inventory valuation.">
-	{#snippet actions()}<BranchSelect />{/snippet}
+	{#snippet actions()}
+		<a
+			href="/day-end/{to}"
+			class="inline-flex items-center gap-1.5 rounded-full border border-surface-2 px-4 py-1.5 text-sm text-fg-soft transition hover:bg-surface-2"
+		>
+			<FileText size={15} /> Day-end report
+		</a>
+		<BranchSelect />
+	{/snippet}
 </PageHeader>
 
 <div class="mt-4 flex flex-wrap items-center gap-2 text-sm text-muted">
