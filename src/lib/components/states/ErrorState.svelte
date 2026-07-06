@@ -20,7 +20,7 @@
 		<button
 			type="button"
 			onclick={onRetry}
-			class="rounded-lg border border-surface-2 px-3 py-1.5 text-sm text-fg-soft transition hover:bg-surface-2"
+			class="rounded-full border border-surface-2 px-4 py-1.5 text-sm text-fg-soft transition hover:bg-surface-2"
 		>
 			Try again
 		</button>

@@ -26,6 +26,7 @@
 		"@fontsource-variable/geist-mono": "^5.2.8",
 		"@fontsource-variable/mona-sans": "^5.2.8",
 		"@lucide/svelte": "^1.23.0",
-		"@tanstack/svelte-query": "^6.1.36"
+		"@tanstack/svelte-query": "^6.1.36",
+		"zod": "^4.4.3"
 	}
 }

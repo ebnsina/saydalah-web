@@ -21,7 +21,7 @@
 			<p class="mt-2 text-sm text-muted">Sign in to manage your pharmacy branches.</p>
 			<a
 				href="/login"
-				class="mt-6 inline-block rounded-lg bg-accent px-4 py-2 font-medium text-white transition hover:bg-accent-strong"
+				class="mt-6 inline-block rounded-full bg-accent px-5 py-2 font-medium text-white transition hover:bg-accent-strong"
 			>
 				Go to sign in
 			</a>

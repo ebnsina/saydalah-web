@@ -69,7 +69,7 @@
 					type="button"
 					onclick={handleLogout}
 					title="Sign out"
-					class="grid h-8 w-8 place-items-center rounded-lg text-muted transition hover:bg-surface-2 hover:text-fg"
+					class="grid h-9 w-9 place-items-center rounded-full border border-surface-2 text-muted transition hover:border-surface-3 hover:text-fg"
 				>
 					<LogOut size={16} />
 				</button>
