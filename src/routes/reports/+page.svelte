@@ -20,17 +20,17 @@
 	const summary = createQuery(() => ({
 		queryKey: ['rep-summary', branch.id, from, to],
 		queryFn: () => salesSummary(branch.id, from, to),
-		enabled: branchReady
+		enabled: Boolean(branch.id)
 	}));
 	const top = createQuery(() => ({
 		queryKey: ['rep-top', branch.id, from, to],
 		queryFn: () => topProducts(branch.id, { from, to, limit: 10 }),
-		enabled: branchReady
+		enabled: Boolean(branch.id)
 	}));
 	const val = createQuery(() => ({
 		queryKey: ['rep-val', branch.id],
 		queryFn: () => inventoryValuation(branch.id),
-		enabled: branchReady
+		enabled: Boolean(branch.id)
 	}));
 
 	const dateInput =

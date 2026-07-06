@@ -7,6 +7,7 @@
 	import { fmtMoney, fmtDate } from '$lib/format';
 	import { urlParam, setParams } from '$lib/url';
 	import { validate, saleSchema } from '$lib/validation';
+	import { productIcon } from '$lib/productIcon';
 	import type { Product, Sale, PaymentMethod } from '$lib/types';
 	import BranchSelect from '$lib/components/BranchSelect.svelte';
 	import SearchInput from '$lib/components/ui/SearchInput.svelte';
@@ -244,17 +245,26 @@
 					{:else}
 						<ul class="divide-y divide-surface-2">
 							{#each results.data.items.slice(0, 8) as p (p.id)}
+								{@const fi = productIcon(p.form)}
+								{@const Icon = fi.icon}
 								<li>
 									<button
 										type="button"
 										onclick={() => addToCart(p)}
-										class="flex w-full items-center justify-between px-4 py-2.5 text-left text-sm transition hover:bg-surface-2/40"
+										class="group flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left text-sm transition hover:bg-surface-2/40"
 									>
-										<span>
-											<span class="text-fg">{p.name}</span>
-											{#if p.strength}<span class="text-muted"> · {p.strength}</span>{/if}
+										<span class="flex items-center gap-3">
+											<span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-surface-2 {fi.tint}">
+												<Icon size={15} />
+											</span>
+											<span>
+												<span class="text-fg">{p.name}</span>
+												{#if p.strength}<span class="text-muted"> · {p.strength}</span>{/if}
+											</span>
 										</span>
-										<Plus size={16} class="text-accent" />
+										<span class="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent/10 text-accent transition group-hover:bg-accent group-hover:text-accent-contrast">
+											<Plus size={15} />
+										</span>
 									</button>
 								</li>
 							{/each}

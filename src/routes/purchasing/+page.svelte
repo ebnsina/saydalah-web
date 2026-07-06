@@ -22,7 +22,7 @@
 	const orders = createQuery(() => ({
 		queryKey: ['purchase-orders', branch.id],
 		queryFn: () => listOrders(branch.id),
-		enabled: branchReady
+		enabled: Boolean(branch.id)
 	}));
 	const suppliers = createQuery(() => ({ queryKey: ['suppliers'], queryFn: listSuppliers }));
 	const products = createQuery(() => ({

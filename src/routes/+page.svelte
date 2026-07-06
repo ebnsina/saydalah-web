@@ -21,19 +21,18 @@
 	}));
 
 	const canReport = $derived(user.data?.role === 'admin' || user.data?.role === 'manager');
-	const branchReady = $derived(Boolean(branch.id));
 	const today = todayParam();
 
 	// Any authenticated staff can read these.
 	const low = createQuery(() => ({
 		queryKey: ['low-stock', branch.id],
 		queryFn: () => lowStock(branch.id),
-		enabled: branchReady
+		enabled: Boolean(branch.id)
 	}));
 	const expiring = createQuery(() => ({
 		queryKey: ['near-expiry', branch.id],
 		queryFn: () => nearExpiry(branch.id, 60),
-		enabled: branchReady
+		enabled: Boolean(branch.id)
 	}));
 	const products = createQuery(() => ({
 		queryKey: ['products', '', 1],
@@ -45,12 +44,12 @@
 	const todaySales = createQuery(() => ({
 		queryKey: ['sales-summary', branch.id, today],
 		queryFn: () => salesSummary(branch.id, today, today),
-		enabled: branchReady && canReport
+		enabled: Boolean(branch.id) && canReport
 	}));
 	const yesterdaySales = createQuery(() => ({
 		queryKey: ['sales-summary', branch.id, yesterday],
 		queryFn: () => salesSummary(branch.id, yesterday, yesterday),
-		enabled: branchReady && canReport
+		enabled: Boolean(branch.id) && canReport
 	}));
 
 	// Percentage change vs. yesterday (undefined until both days are loaded).
@@ -71,12 +70,12 @@
 	const monthTop = createQuery(() => ({
 		queryKey: ['top-products', branch.id, monthStartParam()],
 		queryFn: () => topProducts(branch.id, { from: monthStartParam(), to: today, limit: 5 }),
-		enabled: branchReady && canReport
+		enabled: Boolean(branch.id) && canReport
 	}));
 	const valuation = createQuery(() => ({
 		queryKey: ['valuation', branch.id],
 		queryFn: () => inventoryValuation(branch.id),
-		enabled: branchReady && canReport
+		enabled: Boolean(branch.id) && canReport
 	}));
 </script>
 

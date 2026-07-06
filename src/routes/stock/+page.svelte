@@ -21,12 +21,12 @@
 	const movements = createQuery(() => ({
 		queryKey: ['movements', branch.id],
 		queryFn: () => listMovements(branch.id),
-		enabled: branchReady
+		enabled: Boolean(branch.id)
 	}));
 	const batches = createQuery(() => ({
 		queryKey: ['batches', branch.id, 1],
 		queryFn: () => listBatches(branch.id, 1),
-		enabled: branchReady
+		enabled: Boolean(branch.id)
 	}));
 	const branches = createQuery(() => ({ queryKey: ['branches'], queryFn: listBranches }));
 

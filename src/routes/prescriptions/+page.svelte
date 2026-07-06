@@ -26,7 +26,7 @@
 	const list = createQuery(() => ({
 		queryKey: ['prescriptions', branch.id],
 		queryFn: () => listPrescriptions(branch.id),
-		enabled: branchReady
+		enabled: Boolean(branch.id)
 	}));
 	const customers = createQuery(() => ({ queryKey: ['customers', '', 1], queryFn: () => listCustomers({}) }));
 	const products = createQuery(() => ({ queryKey: ['products', '', 1], queryFn: () => listProducts({}) }));

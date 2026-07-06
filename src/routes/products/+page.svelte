@@ -10,6 +10,7 @@
 	} from '$lib/api/products';
 	import type { Product } from '$lib/types';
 	import { validate, productSchema } from '$lib/validation';
+	import { productIcon } from '$lib/productIcon';
 	import { urlParam, setParams } from '$lib/url';
 	import Spinner from '$lib/components/states/Spinner.svelte';
 	import ErrorState from '$lib/components/states/ErrorState.svelte';
@@ -226,13 +227,22 @@
 				</thead>
 				<tbody class="divide-y divide-surface-2">
 					{#each query.data.items as p (p.id)}
+						{@const fi = productIcon(p.form)}
+						{@const Icon = fi.icon}
 						<tr class="group hover:bg-surface-2/30">
 							<td class="px-4 py-2.5">
-								<div class="flex items-center gap-2">
-									<span class="font-medium text-fg">{p.name}</span>
-									{#if !p.active}<span class="rounded-full bg-surface-2 px-2 py-0.5 text-[10px] font-medium text-muted">Inactive</span>{/if}
+								<div class="flex items-center gap-3">
+									<span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-surface-2 {fi.tint}">
+										<Icon size={17} />
+									</span>
+									<div>
+										<div class="flex items-center gap-2">
+											<span class="font-medium text-fg">{p.name}</span>
+											{#if !p.active}<span class="rounded-full bg-surface-2 px-2 py-0.5 text-[10px] font-medium text-muted">Inactive</span>{/if}
+										</div>
+										{#if p.generic_name}<div class="text-xs text-muted">{p.generic_name}</div>{/if}
+									</div>
 								</div>
-								{#if p.generic_name}<div class="text-xs text-muted">{p.generic_name}</div>{/if}
 							</td>
 							<td class="px-4 py-2.5 text-fg-soft"
 								>{[p.form, p.strength].filter(Boolean).join(' · ') || '—'}</td
