@@ -137,6 +137,15 @@
 		}
 	}));
 
+	// Keyboard shortcut for fast cashiering: ⌘/Ctrl+Enter checks out.
+	function onKeydown(e: KeyboardEvent) {
+		if (view === 'history' || receipt) return;
+		if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && cart.length > 0) {
+			e.preventDefault();
+			submit();
+		}
+	}
+
 	function submit() {
 		saleError = null;
 		const payload = {
@@ -165,6 +174,7 @@
 </script>
 
 <svelte:head><title>Point of Sale — Saydalah</title></svelte:head>
+<svelte:window onkeydown={onKeydown} />
 
 <div class="flex flex-wrap items-center justify-between gap-4">
 	<div>
@@ -403,6 +413,7 @@
 
 				<Button class="mt-1 w-full" disabled={checkout.isPending} onclick={submit}>
 					{checkout.isPending ? 'Processing…' : `Checkout · ${cart.reduce((n, l) => n + l.qty, 0)} items`}
+					{#if cart.length}<kbd class="ml-1 rounded border border-white/30 px-1 text-[10px]">⌘⏎</kbd>{/if}
 				</Button>
 				<button onclick={() => (cart = [])} class="flex items-center justify-center gap-1.5 text-xs text-muted hover:text-red-500">
 					<Trash2 size={13} /> Clear cart
