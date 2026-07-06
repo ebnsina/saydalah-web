@@ -116,7 +116,7 @@
 
 <svelte:head><title>Prescriptions — Saydalah</title></svelte:head>
 
-<PageHeader title="Prescriptions" subtitle="Record prescriptions and dispense them (FEFO).">
+<PageHeader title="Prescriptions" subtitle="Record and fill prescriptions.">
 	{#snippet actions()}
 		<Button onclick={() => (showCreate = true)}><Plus size={16} /> New prescription</Button>
 	{/snippet}
@@ -213,7 +213,7 @@
 <Modal bind:open={dispenseOpen} title="Dispense prescription">
 	{#if dispensing}
 		<div class="flex flex-col gap-3">
-			<p class="text-sm text-muted">Fill {(dispensing.items?.length ?? 0)} item(s) for {customerName(dispensing.customer_id)}. Stock is drawn FEFO.</p>
+			<p class="text-sm text-muted">Fill {(dispensing.items?.length ?? 0)} item(s) for {customerName(dispensing.customer_id)}. We dispense the earliest-expiring stock first.</p>
 			<label class="flex items-center justify-between text-sm">
 				<span class="text-muted">Payment</span>
 				<div class="w-40"><Combobox bind:value={paymentMethod} search={false} options={paymentOptions} /></div>

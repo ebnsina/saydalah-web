@@ -66,7 +66,7 @@
 		>
 			{#if s.voided_at}
 				<div class="pointer-events-none absolute inset-0 flex items-center justify-center">
-					<span class="rotate-[-22deg] text-[8rem] font-black tracking-widest text-red-500/10">VOID</span>
+					<span class="rotate-[-22deg] text-[8rem] font-black tracking-widest text-red-500/10">CANCELLED</span>
 				</div>
 			{/if}
 
@@ -100,7 +100,7 @@
 					</div>
 					<div class="text-right">
 						{#if s.voided_at}
-							<span class="inline-block rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-bold tracking-wide text-red-600 uppercase">Voided</span>
+							<span class="inline-block rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-bold tracking-wide text-red-600 uppercase">Cancelled</span>
 						{:else if due > 0}
 							<span class="inline-block rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-bold tracking-wide text-amber-600 uppercase">Due {fmtMoney(due)}</span>
 						{:else}
@@ -157,7 +157,7 @@
 				<footer class="mt-12 flex flex-wrap items-end justify-between gap-4 border-t border-gray-100 pt-5 text-xs text-gray-400">
 					<div>
 						<p class="font-medium text-gray-500">Thank you for choosing Saydalah Pharmacy.</p>
-						<p class="mt-0.5">Amounts in {currency}. Goods dispensed FEFO. This is a computer-generated invoice — no signature required.</p>
+						<p class="mt-0.5">Amounts in {currency}. Goods dispensed earliest-expiry first. This is a computer-generated invoice — no signature required.</p>
 					</div>
 					<div class="font-mono text-[10px] text-gray-300">#{s.id.slice(0, 8).toUpperCase()}</div>
 				</footer>

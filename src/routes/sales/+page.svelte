@@ -169,7 +169,7 @@
 <div class="flex flex-wrap items-center justify-between gap-4">
 	<div>
 		<h1 class="text-2xl font-semibold tracking-tight text-fg">Sales</h1>
-		<p class="text-sm text-muted">Ring up sales (FEFO) or review and void past sales.</p>
+		<p class="text-sm text-muted">Ring up sales, or review and cancel past sales.</p>
 	</div>
 	<div class="flex items-center gap-2">
 		<div class="flex rounded-full border border-surface-2 p-0.5 text-sm">
@@ -218,7 +218,7 @@
 								<td class="px-4 py-2.5 text-right font-mono tabular-nums text-fg">{fmtMoney(s.total)}</td>
 								<td class="px-4 py-2.5">
 									{#if s.voided_at}
-										<span class="inline-flex items-center gap-1 rounded-full bg-red-500/10 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-tight text-red-500"><Ban size={12} />Voided</span>
+										<span class="inline-flex items-center gap-1 rounded-full bg-red-500/10 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-tight text-red-500"><Ban size={12} />Cancelled</span>
 									{:else}
 										<span class="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-tight text-emerald-500"><Check size={12} />Completed</span>
 									{/if}
@@ -237,7 +237,7 @@
 												disabled={voidMut.isPending}
 												class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs text-muted opacity-0 transition group-hover:opacity-100 hover:bg-red-500/10 hover:text-red-500 disabled:opacity-40"
 											>
-												<Ban size={13} /> Void
+												<Ban size={13} /> Cancel sale
 											</button>
 										{/if}
 									</div>
@@ -387,7 +387,7 @@
 				</label>
 				{#if customerId}
 					<label class="flex items-center justify-between gap-3 text-sm">
-						<span class="text-muted">Charge to account (unpaid)</span>
+						<span class="text-muted">Pay later (on account)</span>
 						<input type="checkbox" bind:checked={onAccount} class="h-4 w-4 accent-[var(--color-accent)]" />
 					</label>
 				{/if}

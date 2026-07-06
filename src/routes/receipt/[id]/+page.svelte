@@ -75,12 +75,12 @@
 				<div class="flex justify-between"><span>Change</span><span class="tabular-nums">{fmtMoney(Number(s.paid) - Number(s.total))}</span></div>
 			{/if}
 
-			{#if s.voided_at}<div class="mt-2 text-center font-bold">*** VOIDED ***</div>{/if}
+			{#if s.voided_at}<div class="mt-2 text-center font-bold">*** CANCELLED ***</div>{/if}
 
 			<div class="my-2 border-t border-dashed border-gray-400"></div>
 			<div class="text-center text-[10px]">
 				<div>Thank you for your purchase!</div>
-				<div>Dispensed FEFO · computer-generated</div>
+				<div>Dispensed earliest-expiry first · computer-generated</div>
 			</div>
 		</div>
 	{/if}

@@ -185,7 +185,7 @@
 		{ label: 'Transfer', desc: 'Move stock to another branch', icon: ArrowLeftRight, open: () => (transferOpen = true) },
 		{ label: 'Customer return', desc: 'Return sold stock back into inventory', icon: Undo2, open: () => (returnOpen = true) },
 		{ label: 'Return to supplier', desc: 'Send damaged or recalled stock back', icon: PackageX, open: () => (prOpen = true) },
-		{ label: 'Stock-take', desc: 'Reconcile physically counted quantities', icon: ClipboardCheck, open: () => (takeOpen = true) }
+		{ label: 'Stock count', desc: 'Update stock to match a physical count', icon: ClipboardCheck, open: () => (takeOpen = true) }
 	];
 	$effect(() => {
 		if (!menuOpen) return;
@@ -231,7 +231,7 @@
 </PageHeader>
 
 <div class="mt-6">
-	<h2 class="mb-3 font-semibold text-fg">Movement ledger</h2>
+	<h2 class="mb-3 font-semibold text-fg">Stock movements</h2>
 	{#if !branchReady}
 		<Spinner label="Selecting branch…" />
 	{:else if movements.isPending}
@@ -369,9 +369,9 @@
 </Modal>
 
 <!-- Stock-take modal -->
-<Modal bind:open={takeOpen} title="Physical stock-take">
+<Modal bind:open={takeOpen} title="Stock count">
 	<div class="flex flex-col gap-3">
-		<p class="text-sm text-muted">Record counted quantities; differences are logged as adjustments.</p>
+		<p class="text-sm text-muted">Enter what you actually counted; we'll adjust stock to match.</p>
 		{#each takeLines as line, i (i)}
 			<div class="flex items-center gap-2">
 				<div class="min-w-0 flex-1"><Combobox bind:value={line.batch_id} options={batchOptions} placeholder="Select a batch…" /></div>
@@ -383,7 +383,7 @@
 		{#if takeError}<p class="text-sm text-red-500">{takeError}</p>{/if}
 		<div class="mt-1 flex justify-end gap-2">
 			<Button variant="secondary" onclick={() => (takeOpen = false)}>Cancel</Button>
-			<Button onclick={submitTake} disabled={take.isPending}>{take.isPending ? 'Reconciling…' : 'Reconcile'}</Button>
+			<Button onclick={submitTake} disabled={take.isPending}>{take.isPending ? 'Saving…' : 'Save count'}</Button>
 		</div>
 	</div>
 </Modal>

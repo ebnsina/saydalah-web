@@ -116,7 +116,7 @@
 			{/if}
 
 			<div class="mt-16 flex items-end justify-between">
-				<div class="text-xs text-gray-400">Dispensed FEFO · computer-generated slip</div>
+				<div class="text-xs text-gray-400">Dispensed earliest-expiry first · computer-generated slip</div>
 				<div class="text-center">
 					<div class="h-px w-48 bg-gray-300"></div>
 					<div class="mt-1 text-xs text-gray-500">Pharmacist signature</div>

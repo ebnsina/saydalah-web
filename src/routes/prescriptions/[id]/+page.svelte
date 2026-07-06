@@ -128,7 +128,7 @@
 					{#if (meta.data?.tax_rate ?? 0) > 0}<span class="text-xs text-muted">+ {((meta.data?.tax_rate ?? 0) * 100).toFixed(0)}% VAT</span>{/if}
 					<div class="w-36"><Combobox bind:value={paymentMethod} search={false} options={paymentOptions} /></div>
 					<Button onclick={() => dispense.mutate()} disabled={dispense.isPending}>
-						<PillBottle size={15} /> {dispense.isPending ? 'Dispensing…' : 'Dispense (FEFO)'}
+						<PillBottle size={15} /> {dispense.isPending ? 'Dispensing…' : 'Dispense'}
 					</Button>
 				</div>
 			{/if}
