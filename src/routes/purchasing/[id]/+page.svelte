@@ -112,7 +112,7 @@
 	<div class="mt-6">
 		<Card>
 			<h2 class="mb-4 font-semibold text-fg">Order items</h2>
-			<table class="w-full text-sm">
+			<table class="w-full text-sm [&_:where(th,td)]:pr-6 [&_:where(th,td):last-child]:pr-0">
 				<thead class="text-left text-xs tracking-wide text-muted uppercase">
 					<tr><th class="py-1.5 font-medium">Product</th><th class="py-1.5 text-right font-medium">Qty</th><th class="py-1.5 text-right font-medium">Unit cost</th><th class="py-1.5 text-right font-medium">Line total</th></tr>
 				</thead>

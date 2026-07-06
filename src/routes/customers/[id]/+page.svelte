@@ -97,7 +97,7 @@
 			{:else if sales.data.items.length === 0}
 				<EmptyState title="No purchases" description="No sales for this customer at this branch." />
 			{:else}
-				<table class="w-full text-sm">
+				<table class="w-full text-sm [&_:where(th,td)]:pr-6 [&_:where(th,td):last-child]:pr-0">
 					<thead class="text-left text-xs tracking-wide text-muted uppercase">
 						<tr><th class="py-1.5 font-medium">Date</th><th class="py-1.5 text-right font-medium">Total</th><th class="py-1.5 font-medium">Status</th><th class="py-1.5"></th></tr>
 					</thead>
@@ -135,7 +135,7 @@
 			{:else if prescriptions.data.items.length === 0}
 				<EmptyState title="No prescriptions" description="No prescriptions for this customer here." />
 			{:else}
-				<table class="w-full text-sm">
+				<table class="w-full text-sm [&_:where(th,td)]:pr-6 [&_:where(th,td):last-child]:pr-0">
 					<thead class="text-left text-xs tracking-wide text-muted uppercase">
 						<tr><th class="py-1.5 font-medium">Date</th><th class="py-1.5 font-medium">Doctor</th><th class="py-1.5 text-right font-medium">Items</th><th class="py-1.5 font-medium">Status</th></tr>
 					</thead>

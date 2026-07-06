@@ -33,7 +33,8 @@
 		page.url.pathname === '/login' ||
 			page.url.pathname.startsWith('/invoice/') ||
 			page.url.pathname.startsWith('/prescription-print/') ||
-			page.url.pathname.startsWith('/day-end/')
+			page.url.pathname.startsWith('/day-end/') ||
+			page.url.pathname.startsWith('/receipt/')
 	);
 	const showChrome = $derived(isAuthenticated() && !bare);
 </script>

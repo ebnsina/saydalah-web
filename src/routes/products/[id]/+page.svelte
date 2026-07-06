@@ -115,7 +115,7 @@
 			{:else if batches.data.items.length === 0}
 				<EmptyState title="No stock here" description="No in-stock batches at this branch." />
 			{:else}
-				<table class="w-full text-sm">
+				<table class="w-full text-sm [&_:where(th,td)]:pr-6 [&_:where(th,td):last-child]:pr-0">
 					<thead class="text-left text-xs tracking-wide text-muted uppercase">
 						<tr><th class="py-1.5 font-medium">Batch</th><th class="py-1.5 text-right font-medium">Qty</th><th class="py-1.5 text-right font-medium">Price</th><th class="py-1.5 text-right font-medium">Expiry</th></tr>
 					</thead>
@@ -145,7 +145,7 @@
 			{:else if movements.data.items.length === 0}
 				<EmptyState title="No movements" description="No stock activity for this product here yet." />
 			{:else}
-				<table class="w-full text-sm">
+				<table class="w-full text-sm [&_:where(th,td)]:pr-6 [&_:where(th,td):last-child]:pr-0">
 					<thead class="text-left text-xs tracking-wide text-muted uppercase">
 						<tr><th class="py-1.5 font-medium">When</th><th class="py-1.5 font-medium">Type</th><th class="py-1.5 text-right font-medium">Qty</th><th class="py-1.5 font-medium">By</th></tr>
 					</thead>
