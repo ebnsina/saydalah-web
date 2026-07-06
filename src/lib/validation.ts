@@ -27,6 +27,14 @@ export const loginSchema = z.object({
 	password: z.string().min(1, 'Password is required')
 });
 
+export const saleSchema = z.object({
+	payment_method: z.enum(['cash', 'card', 'mobile']),
+	discount: z.number().min(0, 'Discount cannot be negative'),
+	lines: z
+		.array(z.object({ product_id: z.string(), qty: z.number().int().positive() }))
+		.min(1, 'Add at least one product to the cart')
+});
+
 export const productSchema = z.object({
 	name: z.string().trim().min(2, 'Name must be at least 2 characters'),
 	generic_name: z.string().max(160),
