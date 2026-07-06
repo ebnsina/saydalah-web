@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { createQuery } from '@tanstack/svelte-query';
-	import { getToken, me } from '$lib/api/auth';
+	import { isAuthenticated, me } from '$lib/api/auth';
 
 	const query = createQuery(() => ({
 		queryKey: ['me'],
 		queryFn: me,
-		enabled: Boolean(getToken()),
+		enabled: isAuthenticated(),
 		retry: false
 	}));
 </script>
@@ -15,7 +15,7 @@
 </svelte:head>
 
 <div class="mx-auto max-w-2xl px-4 py-16">
-	{#if !getToken()}
+	{#if !isAuthenticated()}
 		<div class="rounded-2xl border border-surface-2 bg-surface p-8 text-center">
 			<h1 class="text-xl font-semibold text-fg">Welcome to Saydalah</h1>
 			<p class="mt-2 text-sm text-muted">Sign in to manage your pharmacy branches.</p>
@@ -35,7 +35,7 @@
 		</div>
 	{:else if query.data}
 		<div class="rounded-2xl border border-surface-2 bg-surface p-8">
-			<h1 class="text-xl font-semibold text-fg">Welcome back, {query.data.name}</h1>
+			<h1 class="text-xl font-semibold text-fg">Welcome back, {query.data.full_name}</h1>
 			<dl class="mt-4 grid grid-cols-2 gap-y-2 text-sm">
 				<dt class="text-muted">Email</dt>
 				<dd class="text-fg-soft">{query.data.email}</dd>

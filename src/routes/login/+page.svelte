@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { login, setToken } from '$lib/api/auth';
+	import { login } from '$lib/api/auth';
 
 	let email = $state('');
 	let password = $state('');
 	let submitting = $state(false);
+	// Error text is whatever the API returned — the API is the source of truth.
 	let error = $state<string | null>(null);
 
 	async function handleSubmit(event: SubmitEvent) {
@@ -12,11 +13,10 @@
 		error = null;
 		submitting = true;
 		try {
-			const { token } = await login(email, password);
-			setToken(token);
+			await login(email, password);
 			await goto('/');
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Unable to sign in.';
+			error = err instanceof Error ? err.message : String(err);
 		} finally {
 			submitting = false;
 		}

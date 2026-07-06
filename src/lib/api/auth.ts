@@ -1,48 +1,37 @@
 /**
- * Auth token store and thin auth endpoints for the Saydalah API.
- *
- * The token is kept in memory for fast synchronous reads during the current
- * page's lifetime, and mirrored to `localStorage` so it survives reloads.
+ * Auth endpoints: login, logout, and the current-user lookup. Token storage
+ * lives in `./token`; automatic access-token refresh lives in `./client`.
  */
 
-import { browser } from '$app/environment';
 import { get, post } from './client';
+import { getAccessToken, setTokens, getRefreshToken, clearTokens } from './token';
 import type { LoginResponse, User } from '$lib/types';
 
-const STORAGE_KEY = 'saydalah_token';
-
-let token: string | null = browser ? localStorage.getItem(STORAGE_KEY) : null;
-
-export function getToken(): string | null {
-	return token;
+/** Whether an access token is present (optimistic — the token may be expired). */
+export function isAuthenticated(): boolean {
+	return Boolean(getAccessToken());
 }
 
-export function setToken(next: string): void {
-	token = next;
-	if (browser) {
-		try {
-			localStorage.setItem(STORAGE_KEY, next);
-		} catch {
-			/* storage unavailable (private mode) — ignore */
-		}
+/** Exchange credentials for a token pair and persist it. */
+export async function login(email: string, password: string): Promise<LoginResponse> {
+	const res = await post<LoginResponse>('/auth/login', { email, password });
+	setTokens(res.access_token, res.refresh_token);
+	return res;
+}
+
+/** Revoke the refresh token server-side (best effort) and clear local tokens. */
+export async function logout(): Promise<void> {
+	const rt = getRefreshToken();
+	try {
+		if (rt) await post('/auth/logout', { refresh_token: rt });
+	} catch {
+		/* revoke is best-effort; clear locally regardless */
+	} finally {
+		clearTokens();
 	}
 }
 
-export function clearToken(): void {
-	token = null;
-	if (browser) {
-		try {
-			localStorage.removeItem(STORAGE_KEY);
-		} catch {
-			/* storage unavailable (private mode) — ignore */
-		}
-	}
-}
-
-export function login(email: string, password: string): Promise<LoginResponse> {
-	return post<LoginResponse>('/auth/login', { email, password });
-}
-
+/** Fetch the signed-in user's profile. */
 export function me(): Promise<User> {
 	return get<User>('/auth/me');
 }
