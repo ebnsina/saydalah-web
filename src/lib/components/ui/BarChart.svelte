@@ -1,6 +1,8 @@
 <script lang="ts">
-	/** Horizontal bar chart wrapper around LayerChart. */
-	import { BarChart } from 'layerchart/svg';
+	/**
+	 * Horizontal bar chart built with plain HTML/CSS — DOM text stays perfectly
+	 * crisp at any DPR (no SVG/canvas rasterization), and it animates cleanly.
+	 */
 	import { fmtMoney } from '$lib/format';
 
 	let {
@@ -8,34 +10,21 @@
 		money = false
 	}: { data: { label: string; value: number }[]; money?: boolean } = $props();
 
-	const valueFmt = (v: number) => (money ? fmtMoney(v) : v.toLocaleString());
+	const max = $derived(Math.max(1, ...data.map((d) => d.value)));
+	const fmt = (v: number) => (money ? fmtMoney(v) : v.toLocaleString());
 </script>
 
-<!--
-	--color-primary drives the bar fill (LayerChart default).
-	The [&_text] rule forces geometric text rendering + a legible size so the
-	SVG axis labels stay crisp instead of looking soft/pixelated.
--->
-<div
-	class="chart h-80 w-full [--color-primary:var(--color-accent)] [&_svg_text]:[text-rendering:geometricPrecision] [&_svg_text]:!fill-[var(--color-muted)] [&_svg_text]:![font-size:11px]"
->
-	<BarChart
-		{data}
-		x="value"
-		y="label"
-		orientation="horizontal"
-		padding={{ left: 132, bottom: 28, right: 12 }}
-		props={{
-			bars: { radius: 4, rounded: 'edge' },
-			xAxis: { format: valueFmt },
-			yAxis: { tickLength: 0 }
-		}}
-	/>
+<div class="flex flex-col gap-3">
+	{#each data as d (d.label)}
+		<div class="grid grid-cols-[minmax(6rem,10rem)_1fr] items-center gap-3 sm:grid-cols-[10rem_1fr]">
+			<span class="truncate text-right text-sm text-fg-soft" title={d.label}>{d.label}</span>
+			<div class="flex items-center gap-2">
+				<div
+					class="h-6 min-w-[2px] rounded-md bg-accent/85 transition-[width] duration-500 ease-out"
+					style="width: {(d.value / max) * 100}%"
+				></div>
+				<span class="shrink-0 font-mono text-xs tabular-nums text-muted">{fmt(d.value)}</span>
+			</div>
+		</div>
+	{/each}
 </div>
-
-<style>
-	/* Ensure the SVG never gets scaled to a fractional size (a cause of soft text). */
-	.chart :global(svg) {
-		shape-rendering: geometricPrecision;
-	}
-</style>
