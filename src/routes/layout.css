@@ -82,6 +82,18 @@
 		outline: none;
 		box-shadow: none;
 	}
+	/* Neutralise the browser autofill background (yellow/lavender) so filled
+	   fields keep the app's surface colour and text colour in both themes. */
+	input:-webkit-autofill,
+	input:-webkit-autofill:hover,
+	input:-webkit-autofill:focus,
+	input:-webkit-autofill:active {
+		-webkit-text-fill-color: var(--color-fg);
+		caret-color: var(--color-fg);
+		-webkit-box-shadow: 0 0 0 1000px var(--color-surface) inset;
+		box-shadow: 0 0 0 1000px var(--color-surface) inset;
+		transition: background-color 9999s ease-in-out 0s;
+	}
 	select:focus {
 		outline: none;
 		box-shadow: none;

@@ -31,7 +31,7 @@
 	<div
 		class="flex items-center gap-2 rounded-full border bg-surface px-4 transition focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-offset-surface {error
 			? 'border-red-500 focus-within:ring-red-500/40'
-			: 'border-surface-2 focus-within:border-gray-200 focus-within:ring-gray-200'}"
+			: 'border-surface-2 focus-within:border-accent focus-within:ring-accent'}"
 	>
 		{#if icon}{@render icon()}{/if}
 		<input
