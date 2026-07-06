@@ -1,6 +1,33 @@
 <script lang="ts">
-	import { Pill } from '@lucide/svelte';
+	import { Pill, LogOut } from '@lucide/svelte';
+	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
+	import { useQueryClient, createQuery } from '@tanstack/svelte-query';
+	import { me, logout, isAuthenticated } from '$lib/api/auth';
+	import { NAV, canSee } from '$lib/nav';
 	import ThemeToggle from './ThemeToggle.svelte';
+
+	const queryClient = useQueryClient();
+
+	// Shared with the dashboard via the ['me'] key — fetched once, cached.
+	const user = createQuery(() => ({
+		queryKey: ['me'],
+		queryFn: me,
+		enabled: isAuthenticated(),
+		retry: false
+	}));
+
+	const role = $derived(user.data?.role);
+
+	async function handleLogout() {
+		await logout();
+		queryClient.clear();
+		await goto('/login');
+	}
+
+	function isActive(href: string): boolean {
+		return href === '/' ? page.url.pathname === '/' : page.url.pathname.startsWith(href);
+	}
 </script>
 
 <header
@@ -13,9 +40,40 @@
 			</span>
 			<span class="text-lg text-fg">Saydalah</span>
 		</a>
-		<nav class="hidden items-center gap-6 text-sm text-muted sm:flex">
-			<a href="/" class="transition hover:text-fg">Dashboard</a>
-		</nav>
-		<ThemeToggle />
+
+		{#if isAuthenticated()}
+			<nav class="hidden items-center gap-1 text-sm sm:flex">
+				{#each NAV as item (item.href)}
+					{#if canSee(item, role)}
+						<a
+							href={item.href}
+							class="rounded-lg px-3 py-1.5 transition {isActive(item.href)
+								? 'bg-surface-2 text-fg'
+								: 'text-muted hover:text-fg'}"
+						>
+							{item.label}
+						</a>
+					{/if}
+				{/each}
+			</nav>
+		{/if}
+
+		<div class="flex items-center gap-3">
+			<ThemeToggle />
+			{#if isAuthenticated() && user.data}
+				<div class="hidden text-right text-xs leading-tight sm:block">
+					<div class="font-medium text-fg-soft">{user.data.full_name || user.data.email}</div>
+					<div class="text-muted capitalize">{user.data.role}</div>
+				</div>
+				<button
+					type="button"
+					onclick={handleLogout}
+					title="Sign out"
+					class="grid h-8 w-8 place-items-center rounded-lg text-muted transition hover:bg-surface-2 hover:text-fg"
+				>
+					<LogOut size={16} />
+				</button>
+			{/if}
+		</div>
 	</div>
 </header>
