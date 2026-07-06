@@ -82,6 +82,7 @@ export interface Batch {
 	id: string;
 	product_id: string;
 	product_name: string;
+	product_form: string;
 	batch_no: string;
 	quantity: number;
 	sale_price: string;
@@ -91,6 +92,7 @@ export interface Batch {
 export interface LowStock {
 	product_id: string;
 	product_name: string;
+	product_form: string;
 	reorder_level: number;
 	on_hand: number;
 }

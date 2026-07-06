@@ -6,6 +6,7 @@
 	import { listBranches } from '$lib/api/branches';
 	import { branch } from '$lib/stores/branch.svelte';
 	import { fmtDate } from '$lib/format';
+	import { movementIcon } from '$lib/movementIcon';
 	import BranchSelect from '$lib/components/BranchSelect.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -36,14 +37,6 @@
 		qc.invalidateQueries({ queryKey: ['low-stock'] });
 	}
 
-	const typeTone: Record<string, string> = {
-		purchase: 'text-emerald-500',
-		sale: 'text-red-500',
-		adjustment: 'text-amber-500',
-		return: 'text-emerald-500',
-		transfer_in: 'text-emerald-500',
-		transfer_out: 'text-red-500'
-	};
 
 	const field =
 		'rounded-full border border-surface-2 bg-surface px-3 py-1.5 text-sm text-fg focus:border-accent focus:outline-none';
@@ -180,10 +173,16 @@
 				</thead>
 				<tbody class="divide-y divide-surface-2">
 					{#each movements.data.items as m (m.id)}
+						{@const mi = movementIcon(m.type)}
+						{@const Icon = mi.icon}
 						<tr class="hover:bg-surface-2/30">
 							<td class="px-4 py-2.5 text-muted">{fmtDate(m.created_at)}</td>
 							<td class="px-4 py-2.5 text-fg">{m.product_name}</td>
-							<td class="px-4 py-2.5 capitalize {typeTone[m.type] ?? 'text-fg-soft'}">{m.type.replace('_', ' ')}</td>
+							<td class="px-4 py-2.5">
+								<span class="inline-flex items-center gap-1.5 capitalize {mi.tint}">
+									<Icon size={15} />{m.type.replace('_', ' ')}
+								</span>
+							</td>
 							<td class="px-4 py-2.5 text-right font-mono tabular-nums {m.qty < 0 ? 'text-red-500' : 'text-emerald-500'}">{m.qty > 0 ? '+' : ''}{m.qty}</td>
 							<td class="px-4 py-2.5 text-muted">{m.created_by_name ?? '—'}</td>
 						</tr>

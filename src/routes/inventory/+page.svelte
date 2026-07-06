@@ -4,6 +4,7 @@
 	import { listBatches, nearExpiry, lowStock } from '$lib/api/inventory';
 	import { branch } from '$lib/stores/branch.svelte';
 	import { fmtDate, daysUntil, fmtMoney } from '$lib/format';
+	import { productIcon } from '$lib/productIcon';
 	import BranchSelect from '$lib/components/BranchSelect.svelte';
 	import PageHeader from '$lib/components/ui/PageHeader.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
@@ -67,8 +68,12 @@
 			{:else}
 				<ul class="divide-y divide-surface-2 text-sm">
 					{#each low.data.items as item (item.product_id)}
+						{@const fi = productIcon(item.product_form)}
+						{@const Icon = fi.icon}
 						<li class="flex items-center justify-between py-2">
-							<span class="text-fg">{item.product_name}</span>
+							<span class="flex items-center gap-2.5 text-fg">
+								<Icon size={16} class={fi.tint} />{item.product_name}
+							</span>
 							<span class="text-muted">
 								<span class="font-medium text-red-500">{item.on_hand}</span>
 								/ {item.reorder_level}
@@ -96,8 +101,12 @@
 			{:else}
 				<ul class="divide-y divide-surface-2 text-sm">
 					{#each expiring.data.items.slice(0, 12) as b (b.id)}
+						{@const fi = productIcon(b.product_form)}
+						{@const Icon = fi.icon}
 						<li class="flex items-center justify-between py-2">
-							<span class="text-fg">{b.product_name} <span class="text-muted">· {b.batch_no}</span></span>
+							<span class="flex items-center gap-2.5 text-fg">
+								<Icon size={16} class={fi.tint} />{b.product_name} <span class="text-muted">· {b.batch_no}</span>
+							</span>
 							<span class={expiryTone(b.expiry_date)}>{fmtDate(b.expiry_date)}</span>
 						</li>
 					{/each}
@@ -129,8 +138,15 @@
 					</thead>
 					<tbody class="divide-y divide-surface-2">
 						{#each batches.data.items as b (b.id)}
+							{@const fi = productIcon(b.product_form)}
+							{@const Icon = fi.icon}
 							<tr class="hover:bg-surface-2/30">
-								<td class="px-4 py-2.5 text-fg">{b.product_name}</td>
+								<td class="px-4 py-2.5">
+									<span class="flex items-center gap-2.5 text-fg">
+										<span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-surface-2 {fi.tint}"><Icon size={15} /></span>
+										{b.product_name}
+									</span>
+								</td>
 								<td class="px-4 py-2.5 font-mono text-xs text-muted">{b.batch_no || '—'}</td>
 								<td class="px-4 py-2.5 text-right text-fg-soft">{b.quantity}</td>
 								<td class="px-4 py-2.5 text-right font-mono text-fg-soft">{fmtMoney(b.sale_price)}</td>
