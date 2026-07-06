@@ -7,7 +7,7 @@
 </script>
 
 <div
-	class="flex items-center gap-2 rounded-full border border-surface-2 bg-surface py-2 pr-2 pl-5 transition focus-within:border-accent focus-within:ring-2 focus-within:ring-accent focus-within:ring-offset-2 focus-within:ring-offset-surface"
+	class="flex items-center gap-2 rounded-full border border-surface-2 bg-surface py-2 pr-2 pl-5 transition focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/40 focus-within:ring-offset-2 focus-within:ring-offset-surface"
 >
 	<Search size={18} class="shrink-0 text-muted" aria-hidden="true" />
 	<input
