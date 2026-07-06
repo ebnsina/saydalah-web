@@ -37,15 +37,17 @@
 		return customers.data?.items.find((c) => c.id === id)?.name ?? '—';
 	}
 
-	const productOptions = $derived(
-		(products.data?.items ?? []).map((p) => {
+	async function searchProducts(q: string) {
+		const r = await listProducts({ search: q });
+		return r.items.map((p) => {
 			const fi = productIcon(p.form);
 			return { value: p.id, label: p.name, sublabel: p.strength || undefined, icon: fi.icon, tint: fi.tint };
-		})
-	);
-	const customerOptions = $derived(
-		(customers.data?.items ?? []).map((c) => ({ value: c.id, label: c.name, sublabel: c.phone || undefined }))
-	);
+		});
+	}
+	async function searchCustomers(q: string) {
+		const r = await listCustomers({ search: q });
+		return r.items.map((c) => ({ value: c.id, label: c.name, sublabel: c.phone || undefined }));
+	}
 
 	const field =
 		'rounded-full border border-surface-2 bg-surface px-3 py-1.5 text-sm text-fg focus:border-accent focus:outline-none';
@@ -179,7 +181,7 @@
 	<div class="flex flex-col gap-3">
 		<label class="flex flex-col gap-1 text-sm">
 			<span class="font-medium text-fg-soft">Customer</span>
-			<Combobox bind:value={customerId} options={customerOptions} placeholder="Choose a customer…" />
+			<Combobox bind:value={customerId} onSearch={searchCustomers} placeholder="Search a customer…" />
 		</label>
 		<label class="flex flex-col gap-1 text-sm">
 			<span class="font-medium text-fg-soft">Doctor</span>
@@ -191,7 +193,7 @@
 			{#each items as item, i (i)}
 				<div class="flex items-center gap-2">
 					<div class="min-w-0 flex-1">
-						<Combobox bind:value={item.product_id} options={productOptions} placeholder="Product…" />
+						<Combobox bind:value={item.product_id} onSearch={searchProducts} placeholder="Search a product…" />
 					</div>
 					<input type="number" min="1" bind:value={item.qty} class="{field} w-20 text-right" title="Quantity" />
 					<input bind:value={item.dosage} placeholder="dosage" class="{field} w-28" title="Dosage" />

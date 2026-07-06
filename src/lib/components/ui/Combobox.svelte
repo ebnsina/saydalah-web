@@ -11,35 +11,71 @@
 	}
 
 	let {
-		options,
+		options = [],
 		value = $bindable(''),
 		placeholder = 'Select…',
 		disabled = false,
 		search = true,
+		onSearch,
 		onchange
 	}: {
-		options: Option[];
+		options?: Option[];
 		value?: string;
 		placeholder?: string;
 		disabled?: boolean;
 		search?: boolean;
+		/**
+		 * Server-side search: called (debounced) with the query and must return the
+		 * matching page of options. Use this instead of `options` for large datasets
+		 * so only ~a page is ever loaded — the client never holds the whole set.
+		 */
+		onSearch?: (query: string) => Promise<Option[]>;
 		onchange?: (value: string) => void;
 	} = $props();
 
 	let open = $state(false);
 	let query = $state('');
 	let root = $state<HTMLDivElement>();
+	// Async-search state.
+	let results = $state<Option[]>([]);
+	let searching = $state(false);
+	// Remember the picked option so its label shows even when it's not in the
+	// current result page.
+	let chosen = $state<Option | null>(null);
 
-	const selected = $derived(options.find((o) => o.value === value));
-	const filtered = $derived(
-		query.trim()
-			? options.filter((o) =>
-					`${o.label} ${o.sublabel ?? ''}`.toLowerCase().includes(query.trim().toLowerCase())
-				)
-			: options
+	const selected = $derived(
+		chosen ??
+			options.find((o) => o.value === value) ??
+			results.find((o) => o.value === value)
 	);
+	const filtered = $derived.by(() => {
+		if (onSearch) return results;
+		const q = query.trim().toLowerCase();
+		return q ? options.filter((o) => `${o.label} ${o.sublabel ?? ''}`.toLowerCase().includes(q)) : options;
+	});
+
+	// Debounced server-side search while the menu is open.
+	$effect(() => {
+		if (!onSearch || !open) return;
+		const q = query;
+		let cancelled = false;
+		searching = true;
+		const t = setTimeout(async () => {
+			try {
+				const r = await onSearch(q);
+				if (!cancelled) results = r;
+			} finally {
+				if (!cancelled) searching = false;
+			}
+		}, 200);
+		return () => {
+			cancelled = true;
+			clearTimeout(t);
+		};
+	});
 
 	function choose(v: string) {
+		chosen = filtered.find((o) => o.value === v) ?? options.find((o) => o.value === v) ?? null;
 		value = v;
 		open = false;
 		query = '';
@@ -125,7 +161,9 @@
 						</button>
 					</li>
 				{:else}
-					<li class="px-3 py-3 text-center text-sm text-muted">No matches</li>
+					<li class="px-3 py-3 text-center text-sm text-muted">
+						{onSearch && searching ? 'Searching…' : 'No matches'}
+					</li>
 				{/each}
 			</ul>
 		</div>

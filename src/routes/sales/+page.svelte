@@ -18,11 +18,14 @@
 	import { getMeta } from '$lib/api/meta';
 	import { listCustomers } from '$lib/api/customers';
 
-	const customers = createQuery(() => ({ queryKey: ['customers', '', 1], queryFn: () => listCustomers({}) }));
-	const customerOptions = $derived([
-		{ value: '', label: 'Walk-in customer' },
-		...(customers.data?.items ?? []).map((c) => ({ value: c.id, label: c.name, sublabel: c.phone || undefined }))
-	]);
+	// Server-side customer search; always offer Walk-in (clears the customer).
+	async function searchCustomers(q: string) {
+		const r = await listCustomers({ search: q });
+		return [
+			{ value: '', label: 'Walk-in customer' },
+			...r.items.map((c) => ({ value: c.id, label: c.name, sublabel: c.phone || undefined }))
+		];
+	}
 	let customerId = $state('');
 	let onAccount = $state(false);
 
@@ -375,7 +378,7 @@
 
 				<label class="mt-1 flex items-center justify-between gap-3 text-sm">
 					<span class="shrink-0 text-muted">Customer</span>
-					<div class="min-w-0 flex-1"><Combobox bind:value={customerId} options={customerOptions} placeholder="Walk-in customer" /></div>
+					<div class="min-w-0 flex-1"><Combobox bind:value={customerId} onSearch={searchCustomers} placeholder="Walk-in customer" /></div>
 				</label>
 				<label class="flex items-center justify-between gap-3 text-sm">
 					<span class="text-muted">Payment</span>

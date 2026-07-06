@@ -37,12 +37,14 @@
 		return suppliers.data?.items.find((s) => s.id === id)?.name ?? '—';
 	}
 
-	const productOptions = $derived(
-		(products.data?.items ?? []).map((p) => {
+	// Server-side product search for the picker (never loads the whole catalog).
+	async function searchProducts(q: string) {
+		const r = await listProducts({ search: q });
+		return r.items.map((p) => {
 			const fi = productIcon(p.form);
 			return { value: p.id, label: p.name, sublabel: p.strength || undefined, icon: fi.icon, tint: fi.tint };
-		})
-	);
+		});
+	}
 
 	const statusTone: Record<string, string> = {
 		draft: 'bg-surface-2 text-muted',
@@ -242,7 +244,7 @@
 			{#each items as item, i (i)}
 				<div class="flex items-center gap-2">
 					<div class="min-w-0 flex-1">
-						<Combobox bind:value={item.product_id} options={productOptions} placeholder="Product…" />
+						<Combobox bind:value={item.product_id} onSearch={searchProducts} placeholder="Search a product…" />
 					</div>
 					<input type="number" min="1" bind:value={item.qty} class="{field} w-20 text-right" title="Quantity" />
 					<input type="number" min="0" step="0.01" bind:value={item.unit_cost} class="{field} w-24 text-right" title="Unit cost" />
