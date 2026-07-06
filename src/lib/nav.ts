@@ -14,6 +14,7 @@ import {
 	ClipboardList,
 	Users,
 	FileText,
+	ShieldCheck,
 	Settings
 } from '@lucide/svelte';
 import type { Icon as IconType } from '@lucide/svelte';
@@ -35,7 +36,8 @@ export const NAV: NavItem[] = [
 	{ href: '/prescriptions', label: 'Prescriptions', icon: ClipboardList, roles: ['manager', 'pharmacist'] },
 	{ href: '/customers', label: 'Customers', icon: Users },
 	{ href: '/reports', label: 'Reports', icon: FileText, roles: ['manager'] },
-	{ href: '/admin', label: 'Admin', icon: Settings, roles: ['manager'] }
+	{ href: '/admin', label: 'Admin', icon: ShieldCheck, roles: ['manager'] },
+	{ href: '/settings', label: 'Settings', icon: Settings }
 ];
 
 /** Whether a role may see a nav item (admins always may). */
