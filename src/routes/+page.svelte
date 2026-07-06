@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createQuery } from '@tanstack/svelte-query';
-	import { Banknote, ShoppingCart, TriangleAlert, Clock, Pill, Boxes } from '@lucide/svelte';
+	import { Banknote, ShoppingCart, TriangleAlert, Clock, Pill, Boxes, Trophy } from '@lucide/svelte';
 	import { isAuthenticated, me } from '$lib/api/auth';
 	import { lowStock, nearExpiry } from '$lib/api/inventory';
 	import { listProducts } from '$lib/api/products';
@@ -8,11 +8,13 @@
 	import { branch } from '$lib/stores/branch.svelte';
 	import { fmtLongDate, todayParam, monthStartParam, fmtMoney } from '$lib/format';
 	import { productIcon } from '$lib/productIcon';
+	import { urlParam, setParams } from '$lib/url';
 	import BranchSelect from '$lib/components/BranchSelect.svelte';
 	import StatCard from '$lib/components/ui/StatCard.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Spinner from '$lib/components/states/Spinner.svelte';
 	import EmptyState from '$lib/components/states/EmptyState.svelte';
+	import TableSkeleton from '$lib/components/states/TableSkeleton.svelte';
 
 	const user = createQuery(() => ({
 		queryKey: ['me'],
@@ -23,6 +25,14 @@
 
 	const canReport = $derived(user.data?.role === 'admin' || user.data?.role === 'manager');
 	const today = todayParam();
+
+	const tab = $derived(urlParam('tab', 'reorder'));
+	const tabs = $derived([
+		{ id: 'reorder', label: 'Needs reordering', icon: TriangleAlert, count: low.data?.items.length },
+		...(canReport
+			? [{ id: 'top', label: 'Top products this month', icon: Trophy, count: monthTop.data?.items.length }]
+			: [])
+	]);
 
 	// Any authenticated staff can read these.
 	const low = createQuery(() => ({
@@ -182,57 +192,75 @@
 		</div>
 	{/if}
 
-	<div class="mt-6 grid items-start gap-6 lg:grid-cols-2">
-		<!-- Top products this month (managers) -->
-		{#if canReport}
-			<Card>
-				<div class="mb-3 flex items-center justify-between">
-					<h2 class="font-semibold text-fg">Top products this month</h2>
-					<a href="/reports" class="text-xs text-accent hover:underline">Reports</a>
-				</div>
-				{#if monthTop.isPending}
-					<Spinner />
-				{:else if monthTop.data && monthTop.data.items.length > 0}
-					<ol class="divide-y divide-surface-2 text-sm">
-						{#each monthTop.data.items as p, i (p.product_id)}
-							<li class="flex items-center justify-between py-2">
-								<span class="flex items-center gap-3">
-									<span class="grid h-6 w-6 place-items-center rounded-full bg-surface-2 text-xs font-medium text-muted">{i + 1}</span>
-									<span class="text-fg">{p.product_name}</span>
-								</span>
-								<span class="text-muted">{p.units_sold} sold · <span class="font-mono text-fg-soft">{fmtMoney(p.revenue)}</span></span>
-							</li>
-						{/each}
-					</ol>
-				{:else}
-					<EmptyState title="No sales yet this month" />
-				{/if}
-			</Card>
-		{/if}
+	<!-- Tabbed lists -->
+	<div class="mt-6 flex gap-1 border-b border-surface-2">
+		{#each tabs as t (t.id)}
+			{@const TIcon = t.icon}
+			<button
+				onclick={() => setParams({ tab: t.id })}
+				class="inline-flex items-center gap-1.5 border-b-2 px-4 py-2 text-sm font-medium transition {tab === t.id
+					? 'border-accent text-accent'
+					: 'border-transparent text-muted hover:text-fg'}"
+			>
+				<TIcon size={15} />{t.label}
+				{#if t.count !== undefined}<span class="rounded-full bg-surface-2 px-1.5 text-xs text-muted">{t.count}</span>{/if}
+			</button>
+		{/each}
+	</div>
 
-		<!-- Reorder attention (all staff) -->
-		<Card>
-			<div class="mb-3 flex items-center gap-2">
-				<TriangleAlert size={16} class="text-amber-500" />
-				<h2 class="font-semibold text-fg">Needs reordering</h2>
-			</div>
+	<div class="mt-5">
+		{#if tab === 'top' && canReport}
+			<!-- Top products this month -->
+			{#if monthTop.isPending}
+				<TableSkeleton cols={3} />
+			{:else if monthTop.data && monthTop.data.items.length > 0}
+				<div class="overflow-x-auto rounded-2xl border border-surface-2">
+					<table class="w-full text-sm">
+						<thead class="bg-surface-2/50 text-left text-xs tracking-wide text-muted uppercase">
+							<tr><th class="px-4 py-2.5 font-medium">#</th><th class="px-4 py-2.5 font-medium">Product</th><th class="px-4 py-2.5 text-right font-medium">Units sold</th><th class="px-4 py-2.5 text-right font-medium">Revenue</th></tr>
+						</thead>
+						<tbody class="divide-y divide-surface-2">
+							{#each monthTop.data.items as p, i (p.product_id)}
+								<tr class="hover:bg-surface-2/30">
+									<td class="px-4 py-2.5"><span class="grid h-6 w-6 place-items-center rounded-full bg-surface-2 text-xs font-medium text-muted">{i + 1}</span></td>
+									<td class="px-4 py-2.5"><a href="/products/{p.product_id}" class="text-fg hover:text-accent hover:underline">{p.product_name}</a></td>
+									<td class="px-4 py-2.5 text-right tabular-nums text-fg-soft">{p.units_sold}</td>
+									<td class="px-4 py-2.5 text-right font-mono tabular-nums text-fg">{fmtMoney(p.revenue)}</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+			{:else}
+				<EmptyState title="No sales yet this month" />
+			{/if}
+		{:else}
+			<!-- Needs reordering -->
 			{#if low.isPending}
-				<Spinner />
+				<TableSkeleton cols={4} />
 			{:else if low.data && low.data.items.length > 0}
-				<ul class="divide-y divide-surface-2 text-sm">
-					{#each low.data.items.slice(0, 5) as item (item.product_id)}
-						{@const fi = productIcon(item.product_form)}
-						{@const Icon = fi.icon}
-						<li class="flex items-center justify-between py-2">
-							<span class="flex items-center gap-2.5 text-fg"><Icon size={16} class={fi.tint} />{item.product_name}</span>
-							<span class="text-muted"><span class="font-medium text-red-500">{item.on_hand}</span> / {item.reorder_level}</span>
-						</li>
-					{/each}
-				</ul>
-				<a href="/inventory" class="mt-3 inline-block text-xs text-accent hover:underline">View inventory →</a>
+				<div class="overflow-x-auto rounded-2xl border border-surface-2">
+					<table class="w-full text-sm">
+						<thead class="bg-surface-2/50 text-left text-xs tracking-wide text-muted uppercase">
+							<tr><th class="px-4 py-2.5 font-medium">Product</th><th class="px-4 py-2.5 text-right font-medium">On hand</th><th class="px-4 py-2.5 text-right font-medium">Reorder level</th><th class="px-4 py-2.5 text-right font-medium">Short by</th></tr>
+						</thead>
+						<tbody class="divide-y divide-surface-2">
+							{#each low.data.items as item (item.product_id)}
+								{@const fi = productIcon(item.product_form)}
+								{@const Icon = fi.icon}
+								<tr class="hover:bg-surface-2/30">
+									<td class="px-4 py-2.5"><a href="/products/{item.product_id}" class="flex items-center gap-2.5 text-fg hover:text-accent hover:underline"><Icon size={16} class={fi.tint} />{item.product_name}</a></td>
+									<td class="px-4 py-2.5 text-right font-medium text-red-500 tabular-nums">{item.on_hand}</td>
+									<td class="px-4 py-2.5 text-right text-fg-soft tabular-nums">{item.reorder_level}</td>
+									<td class="px-4 py-2.5 text-right text-amber-500 tabular-nums">{Math.max(item.reorder_level - item.on_hand, 0)}</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
 			{:else}
 				<EmptyState title="Stock looks healthy" description="Nothing below reorder level." />
 			{/if}
-		</Card>
+		{/if}
 	</div>
 {/if}
