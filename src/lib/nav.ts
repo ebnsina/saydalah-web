@@ -4,7 +4,18 @@
  */
 
 import type { Role } from '$lib/types';
-import { LayoutDashboard, ShoppingCart, Boxes, Pill, Truck, FileText } from '@lucide/svelte';
+import {
+	LayoutDashboard,
+	ShoppingCart,
+	Boxes,
+	ArrowLeftRight,
+	Pill,
+	Truck,
+	ClipboardList,
+	Users,
+	FileText,
+	Settings
+} from '@lucide/svelte';
 import type { Icon as IconType } from '@lucide/svelte';
 
 export interface NavItem {
@@ -18,9 +29,13 @@ export const NAV: NavItem[] = [
 	{ href: '/', label: 'Dashboard', icon: LayoutDashboard },
 	{ href: '/sales', label: 'Sales', icon: ShoppingCart },
 	{ href: '/inventory', label: 'Inventory', icon: Boxes },
+	{ href: '/stock', label: 'Stock ops', icon: ArrowLeftRight, roles: ['manager', 'pharmacist'] },
 	{ href: '/products', label: 'Products', icon: Pill },
 	{ href: '/purchasing', label: 'Purchasing', icon: Truck, roles: ['manager', 'pharmacist'] },
-	{ href: '/reports', label: 'Reports', icon: FileText, roles: ['manager'] }
+	{ href: '/prescriptions', label: 'Prescriptions', icon: ClipboardList, roles: ['manager', 'pharmacist'] },
+	{ href: '/customers', label: 'Customers', icon: Users },
+	{ href: '/reports', label: 'Reports', icon: FileText, roles: ['manager'] },
+	{ href: '/admin', label: 'Admin', icon: Settings, roles: ['manager'] }
 ];
 
 /** Whether a role may see a nav item (admins always may). */

@@ -99,6 +99,48 @@ export interface OnHand {
 	on_hand: number;
 }
 
+export interface Customer {
+	id: string;
+	name: string;
+	phone: string;
+	address: string;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface PrescriptionItem {
+	product_id: string;
+	qty: number;
+	dosage: string;
+}
+
+export interface Prescription {
+	id: string;
+	customer_id: string;
+	branch_id: string;
+	doctor_name: string;
+	notes: string;
+	dispensed_at: string | null;
+	created_at: string;
+	items: PrescriptionItem[];
+}
+
+export interface MovementRow {
+	id: string;
+	product_id: string;
+	product_name: string;
+	branch_id: string;
+	batch_id: string | null;
+	type: string;
+	qty: number;
+	ref_type: string;
+	ref_id: string | null;
+	note: string;
+	created_by: string | null;
+	created_by_name: string | null;
+	created_at: string;
+}
+
 export type PoStatus = 'draft' | 'ordered' | 'received' | 'cancelled';
 
 export interface PurchaseOrderItem {
